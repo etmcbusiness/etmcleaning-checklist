@@ -5,6 +5,10 @@ checklists across ETMCLEANING locations. Includes per-location info pages,
 detailed cleaning checklists with progress tracking, a built-in cleaning
 timer with pause/resume, and a per-location cleaning log.
 
+**Open the app (production):** [https://etmcbusiness.github.io/etmcleaning-checklist/](https://etmcbusiness.github.io/etmcleaning-checklist/)
+
+Use that **`github.io`** address in the browser or when sharing—**not** the raw `github.com/...` repository page (that is only the code). Repository: [github.com/etmcbusiness/etmcleaning-checklist](https://github.com/etmcbusiness/etmcleaning-checklist).
+
 ## Features
 
 - **Location dashboard** — pick a property and see its key info (address, key,
