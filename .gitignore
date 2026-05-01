@@ -1,0 +1,19 @@
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor / IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Node (in case anyone adds a dev server later)
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Local env / secrets
+.env
+.env.local
