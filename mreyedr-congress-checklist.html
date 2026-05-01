@@ -91,61 +91,17 @@
 
       <div class="checklist">
 
-        <!-- Notes for This Cleaning -->
-        <section class="task-group notes-group">
-          <h2>Notes for This Cleaning</h2>
-          <textarea data-note-key="notes-current" rows="3" placeholder="Anything special about today's window cleaning?"></textarea>
-        </section>
-
         <section class="task-group">
-          <h2>Setup</h2>
+          <h2>Tasks</h2>
           <ul class="task-list">
-            <li><label><input type="checkbox" /><span>Gather supplies and safe access (ladder or step stool only as appropriate)</span></label></li>
+            <li><label><input type="checkbox" /><span>Take before photos, upload to SMS</span></label></li>
+            <li><label><input type="checkbox" /><span>Clean exterior windows</span></label></li>
+            <li><label><input type="checkbox" /><span>Wipe window sills</span></label></li>
+            <li><label><input type="checkbox" /><span>Clean interior door</span></label></li>
+            <li><label><input type="checkbox" /><span>Take after photos, upload to SMS</span></label></li>
           </ul>
         </section>
 
-        <section class="task-group">
-          <h2>Window panes (20 total)</h2>
-          <span class="cleaner-badge">Use: Glass Cleaner</span>
-          <p class="process-note">
-            <strong>Scope:</strong> 20 window panes at 714 Congress Ave Ste 100 &mdash; finish streak-free; wipe drips from frames and sills.
-          </p>
-          <ul class="task-list">
-            <li><label><input type="checkbox" /><span>All 20 panes cleaned per scope (inside and out as agreed)</span></label></li>
-            <li><label><input type="checkbox" /><span>Frames and sills spot-checked; smudges and drips touched up</span></label></li>
-          </ul>
-        </section>
-
-        <!-- Before You Leave -->
-        <section class="task-group">
-          <h2>Before You Leave</h2>
-          <ul class="task-list">
-            <li><label><input type="checkbox" /><span>Double check all panes and checklist items</span></label></li>
-            <li><label><input type="checkbox" /><span>Pack up supplies; work area clear</span></label></li>
-          </ul>
-        </section>
-
-        <!-- Notes for Next Cleaning -->
-        <section class="task-group notes-group">
-          <h2>Notes for Next Cleaning</h2>
-          <textarea data-note-key="notes-next" rows="4" placeholder="Anything to flag for next time? Damage, low supplies, etc."></textarea>
-        </section>
-
-        <!-- Upload After Photos (last section; not part of main progress %) -->
-        <section class="task-group photo-upload-group" aria-label="Upload after photos">
-          <h2>Upload photos or videos</h2>
-          <p class="photo-upload-subtitle">After photos (optional)</p>
-          <div class="photo-upload-body">
-            <div class="photo-upload-actions">
-              <input type="file" id="photoInput" class="photo-file-input" accept="image/*,video/*,.heic,.heif" multiple hidden />
-              <label class="btn-photo-add" for="photoInput">Add photos or videos</label>
-              <span class="photo-count" id="photoCount" aria-live="polite">0/10</span>
-            </div>
-            <p class="photo-upload-hint">Maximum 10 items (photos or short videos).</p>
-            <p class="photo-upload-status" id="photoUploadStatus" role="status" aria-live="polite" hidden></p>
-            <div class="photo-thumbs" id="photoThumbs"></div>
-          </div>
-        </section>
       </div>
 
       <div class="cancel-cleaning-bar" id="cancelCleaningBar" hidden>
