@@ -47,8 +47,19 @@
     revealBtn.hidden = true;
   }
 
-  window.addEventListener('pageshow', function (e) {
-    if (e.persisted) resetGatedState();
+  // Always lock when the page is shown again (covers BFCache / iOS PWA where
+  // persisted is missing or pagehide did not run before freeze).
+  window.addEventListener('pageshow', function () {
+    resetGatedState();
+  });
+
+  // Snapshot taken for BFCache should not keep the code visible.
+  window.addEventListener('pagehide', function () {
+    resetGatedState();
+  });
+
+  document.addEventListener('freeze', function () {
+    resetGatedState();
   });
 
   revealBtn.addEventListener('click', openModal);
