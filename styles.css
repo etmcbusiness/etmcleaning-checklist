@@ -30,6 +30,24 @@ body {
   background: var(--off-white);
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
+  -webkit-text-size-adjust: 100%;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* ---------- Touch / mobile baseline ---------- */
+button,
+a,
+input[type="checkbox"],
+label,
+textarea {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+button,
+a {
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 /* ---------- Hero ---------- */
@@ -922,31 +940,169 @@ body {
 
 /* ---------- Responsive ---------- */
 @media (max-width: 700px) {
+  /* Hero */
   .hero {
-    padding: 48px 20px 16px;
+    padding: 56px 20px 20px;
   }
+  .hero h1 {
+    font-size: 30px;
+  }
+
+  /* Home page locations */
   .locations {
-    padding: 16px 20px 60px;
+    padding: 8px 16px 48px;
   }
   .location-btn {
-    padding: 18px 20px;
-    font-size: 16px;
+    padding: 24px 22px;
+    font-size: 17px;
+    border-radius: 16px;
+    min-height: 64px;
+    line-height: 1.35;
   }
+
+  /* Page wrappers */
   .location-page,
+  .checklist-page,
+  .log-page {
+    padding: 20px 16px 48px;
+    padding-bottom: calc(48px + env(safe-area-inset-bottom));
+  }
   .checklist-page {
-    padding: 24px 16px 48px;
+    padding-top: 72px;
   }
-  .task-list label {
+
+  /* Back link */
+  .back-link {
+    padding: 12px 18px;
     font-size: 15px;
-    padding: 14px 4px;
+    margin-bottom: 20px;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
   }
+
+  /* Location info cards */
+  .info-grid {
+    gap: 12px;
+  }
+  .info-card {
+    padding: 18px 20px;
+  }
+  .info-link {
+    margin-top: 10px;
+    padding: 10px 0;
+    font-size: 15px;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+  }
+
+  /* Start Cleaning + View Cleaning Log */
+  .start-btn {
+    padding: 22px;
+    font-size: 18px;
+    min-height: 64px;
+  }
+  .log-btn {
+    padding: 20px;
+    font-size: 17px;
+    margin-top: 14px;
+    min-height: 60px;
+  }
+
+  /* Checklist tasks (bigger tap targets) */
+  .task-list label {
+    font-size: 16px;
+    padding: 16px 4px;
+    gap: 16px;
+    min-height: 56px;
+  }
+  .task-list input[type="checkbox"] {
+    width: 28px;
+    height: 28px;
+    border-width: 2px;
+    border-radius: 7px;
+  }
+  .task-list input[type="checkbox"]:checked::after {
+    left: 8px;
+    top: 3px;
+    width: 8px;
+    height: 14px;
+    border-width: 0 3px 3px 0;
+  }
+  .task-list span em {
+    font-size: 13px;
+    margin-top: 6px;
+    line-height: 1.4;
+  }
+  .task-group {
+    padding: 18px 18px 8px;
+  }
+  .task-group h2 {
+    font-size: 15px;
+  }
+
+  /* Cleaner badges + process notes */
+  .cleaner-badge {
+    font-size: 12px;
+    padding: 5px 12px;
+  }
+  .process-note {
+    font-size: 13px;
+    padding: 12px 14px;
+  }
+
+  /* Notes textareas (16px font prevents iOS auto-zoom) */
+  .notes-group textarea {
+    font-size: 16px;
+    padding: 14px;
+    border-radius: 12px;
+  }
+
+  /* Action buttons */
   .checklist-actions {
     flex-direction: column;
+    gap: 12px;
   }
+  .btn-primary,
+  .btn-secondary {
+    padding: 20px;
+    font-size: 17px;
+    min-height: 60px;
+    border-radius: 14px;
+  }
+
+  /* Modal */
+  .modal-backdrop {
+    padding: 16px;
+  }
+  .modal {
+    padding: 24px 22px 22px;
+    border-radius: 20px;
+  }
+  .modal h2 {
+    font-size: 20px;
+  }
+  .modal p {
+    font-size: 15px;
+    margin-bottom: 18px;
+  }
+  .modal-btn {
+    padding: 18px 16px;
+    font-size: 16px;
+    min-height: 56px;
+    border-radius: 14px;
+  }
+  .modal-actions {
+    gap: 12px;
+  }
+
+  /* Cleaning timer (top right floating widget) */
   .cleaning-timer {
-    top: 8px;
-    right: 8px;
-    padding: 6px 10px;
+    top: calc(8px + env(safe-area-inset-top));
+    right: calc(8px + env(safe-area-inset-right));
+    padding: 8px 12px;
+    gap: 4px;
   }
   .timer-label {
     font-size: 9px;
@@ -955,11 +1111,37 @@ body {
     font-size: 18px;
   }
   .timer-toggle {
-    width: 26px;
-    height: 26px;
-    font-size: 10px;
+    width: 34px;
+    height: 34px;
+    font-size: 12px;
   }
-  .checklist-page {
-    padding-top: 64px;
+
+  /* Log page summary tiles */
+  .summary-tile {
+    padding: 14px 16px;
   }
+  .summary-num {
+    font-size: 20px;
+  }
+  .log-actions {
+    margin-top: 20px;
+  }
+  .log-actions .btn-secondary {
+    width: 100%;
+    min-width: 0;
+    flex: 1;
+    min-height: 56px;
+  }
+}
+
+/* Touch press feedback for buttons that don't already have :active styling */
+.location-btn:active,
+.start-btn:active,
+.log-btn:active,
+.back-link:active,
+.btn-primary:active,
+.btn-secondary:active,
+.info-link:active {
+  transform: scale(0.98);
+  transition-duration: 0.05s;
 }
