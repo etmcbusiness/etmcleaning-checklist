@@ -153,7 +153,7 @@ a {
   border-color: #dc2626;
 }
 
-/* ---------- Home backup cluster (bottom center) ---------- */
+/* ---------- Home: Update App (opens sheet) ---------- */
 .backup-bar {
   flex-shrink: 0;
   margin-top: auto;
@@ -165,13 +165,116 @@ a {
   border: none;
 }
 
-.backup-bar-inner {
-  width: 100%;
-  max-width: min(400px, calc(100vw - 32px));
-  margin: 0 auto;
+.btn-update-app {
+  display: inline-block;
+  padding: 12px 28px;
+  font-size: 15px;
+  font-weight: 700;
+  font-family: inherit;
+  color: #2d3e4f;
+  background: var(--white);
+  border: 2px solid rgba(77, 104, 133, 0.35);
+  border-radius: 999px;
+  box-shadow: var(--shadow);
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease, transform 0.15s ease,
+    box-shadow 0.2s ease;
+}
+
+.btn-update-app:hover {
+  background: var(--light-blue-soft);
+  border-color: var(--light-blue-strong);
+  transform: translateY(-1px);
+}
+
+.btn-update-app:active {
+  transform: translateY(0);
+}
+
+.app-update-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 250;
   display: flex;
   flex-direction: column;
-  align-items: stretch;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.app-update-layer[hidden] {
+  display: none !important;
+}
+
+.app-update-backdrop {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: rgba(20, 28, 36, 0.42);
+  cursor: pointer;
+}
+
+.app-update-sheet {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: min(440px, 100vw);
+  max-height: calc(90vh - env(safe-area-inset-top, 0px));
+  background: #f4f7fa;
+  border-radius: 20px 20px 0 0;
+  box-shadow: 0 -12px 40px rgba(11, 11, 13, 0.14);
+  display: flex;
+  flex-direction: column;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.app-update-sheet-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 18px 18px 12px;
+  border-bottom: 1px solid rgba(77, 104, 133, 0.12);
+  background: var(--white);
+  border-radius: 20px 20px 0 0;
+}
+
+.app-update-menu-title {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: -0.3px;
+  color: var(--black);
+}
+
+.app-update-close {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-radius: 12px;
+  background: rgba(77, 104, 133, 0.1);
+  color: #4a5568;
+  font-size: 26px;
+  line-height: 1;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.app-update-close:hover {
+  background: rgba(77, 104, 133, 0.18);
+  color: var(--black);
+}
+
+.app-update-sheet-body {
+  position: relative;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 18px 20px 24px;
 }
 
 .backup-actions {
@@ -228,12 +331,10 @@ a {
   margin-top: 16px;
   padding: 14px 18px 16px;
   text-align: center;
-  background: rgba(255, 255, 255, 0.82);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  background: rgba(255, 255, 255, 0.92);
   border: 1px solid rgba(77, 104, 133, 0.14);
   border-radius: 16px;
-  box-shadow: 0 8px 28px rgba(77, 104, 133, 0.09), 0 1px 0 rgba(255, 255, 255, 0.8) inset;
+  box-shadow: 0 4px 18px rgba(77, 104, 133, 0.07);
   position: relative;
 }
 
@@ -2271,8 +2372,12 @@ label.btn-photo-add {
   .backup-bar {
     padding: 10px 16px calc(20px + env(safe-area-inset-bottom, 0px));
   }
-  .backup-bar-inner {
-    max-width: min(380px, calc(100vw - 24px));
+  .btn-update-app {
+    padding: 11px 24px;
+    font-size: 14px;
+  }
+  .app-update-sheet-body {
+    padding: 16px 16px 22px;
   }
   .location-btn {
     padding: 24px 22px;

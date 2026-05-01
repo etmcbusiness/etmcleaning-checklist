@@ -31,11 +31,39 @@
       </div>
     </section>
 
-    <section class="backup-bar" id="device-backup" aria-label="Backup and restore">
-      <div class="backup-bar-inner">
+    <section class="backup-bar" id="device-backup" aria-label="App update and backup">
+      <button
+        type="button"
+        class="btn-update-app"
+        id="updateAppBtn"
+        aria-expanded="false"
+        aria-haspopup="dialog"
+        aria-controls="appUpdateLayer"
+      >
+        Update App
+      </button>
+    </section>
+  </main>
+
+  <div id="appUpdateLayer" class="app-update-layer" hidden>
+    <div class="app-update-backdrop" data-app-update-dismiss tabindex="-1" aria-hidden="true"></div>
+    <div
+      class="app-update-sheet"
+      id="appUpdateSheet"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="appUpdateMenuTitle"
+    >
+      <div class="app-update-sheet-head">
+        <h2 id="appUpdateMenuTitle" class="app-update-menu-title">Save or replace data</h2>
+        <button type="button" class="app-update-close" id="appUpdateCloseBtn" aria-label="Close">
+          &times;
+        </button>
+      </div>
+      <div class="app-update-sheet-body">
         <div class="backup-actions">
-          <button type="button" class="btn-backup" id="fullBackupBtn">Save all data</button>
-          <button type="button" class="btn-backup btn-backup-danger" id="replaceAllBtn">Replace all data</button>
+          <button type="button" class="btn-backup" id="fullBackupBtn">Save data</button>
+          <button type="button" class="btn-backup btn-backup-danger" id="replaceAllBtn">Replace</button>
         </div>
         <input
           type="file"
@@ -51,8 +79,8 @@
         </div>
         <p class="backup-bar-status" id="backupStatus" role="status" aria-live="polite"></p>
       </div>
-    </section>
-  </main>
+    </div>
+  </div>
 
   <script src="media-db.js"></script>
   <script src="backup-restore.js"></script>
@@ -79,13 +107,47 @@
   </script>
   <script>
     (function () {
+      var layer = document.getElementById('appUpdateLayer');
+      var updateBtn = document.getElementById('updateAppBtn');
+      var closeBtn = document.getElementById('appUpdateCloseBtn');
+      var backdrop = layer && layer.querySelector('[data-app-update-dismiss]');
       var backupBtn = document.getElementById('fullBackupBtn');
       var replaceBtn = document.getElementById('replaceAllBtn');
       var fileInput = document.getElementById('restoreFileInput');
       var statusEl = document.getElementById('backupStatus');
       var E = window.EtmBackup;
 
-      if (!backupBtn || !replaceBtn || !fileInput || !statusEl || !E) return;
+      if (!layer || !updateBtn || !backupBtn || !replaceBtn || !fileInput || !statusEl || !E) return;
+
+      function openAppUpdateMenu() {
+        layer.hidden = false;
+        updateBtn.setAttribute('aria-expanded', 'true');
+        document.body.style.overflow = 'hidden';
+        window.setTimeout(function () {
+          if (closeBtn) closeBtn.focus();
+        }, 0);
+      }
+
+      function closeAppUpdateMenu() {
+        layer.hidden = true;
+        updateBtn.setAttribute('aria-expanded', 'false');
+        document.body.style.overflow = '';
+        updateBtn.focus();
+      }
+
+      updateBtn.addEventListener('click', function () {
+        if (layer.hidden) openAppUpdateMenu();
+        else closeAppUpdateMenu();
+      });
+
+      if (closeBtn) closeBtn.addEventListener('click', closeAppUpdateMenu);
+      if (backdrop) backdrop.addEventListener('click', closeAppUpdateMenu);
+
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && layer && !layer.hidden) {
+          closeAppUpdateMenu();
+        }
+      });
 
       backupBtn.addEventListener('click', function () {
         backupBtn.disabled = true;
