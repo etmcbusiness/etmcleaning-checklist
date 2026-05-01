@@ -3,15 +3,16 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <meta name="theme-color" content="#0b0b0d" />
+  <meta name="theme-color" content="#4d6885" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="apple-mobile-web-app-title" content="ETM Checklist" />
-  <title>Ramsey Rd - Cleaning Log</title>
+  <title>Ramsey Rd — Cleaning log (ETM Checklist)</title>
   <link rel="manifest" href="manifest.json" />
+  <link rel="icon" type="image/png" sizes="512x512" href="icons/app-icon.png" />
   <link rel="icon" type="image/svg+xml" href="icons/favicon.svg" />
-  <link rel="apple-touch-icon" href="icons/icon.svg" />
+  <link rel="apple-touch-icon" href="icons/app-icon.png" />
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
@@ -46,11 +47,36 @@
       </div>
 
       <div class="log-actions">
+        <button type="button" class="btn-secondary" id="exportLogBtn">Export log (JSON)</button>
         <button type="button" class="btn-secondary" id="clearLogBtn">Clear Log</button>
       </div>
     </section>
+
+    <div class="modal-backdrop" id="confirmModal">
+      <div class="modal" role="dialog" aria-modal="true" aria-labelledby="confirmTitle">
+        <h2 id="confirmTitle">Confirm</h2>
+        <p id="confirmMessage"></p>
+        <div class="modal-actions">
+          <button type="button" class="modal-btn modal-no" id="confirmCancel">Cancel</button>
+          <button type="button" class="modal-btn modal-yes modal-danger" id="confirmOk">Confirm</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-backdrop gallery-backdrop" id="galleryModal" aria-hidden="true">
+      <div class="gallery-panel" role="dialog" aria-modal="true" aria-label="Cleaning photos and videos">
+        <button type="button" class="gallery-close" id="galleryClose" aria-label="Close gallery">&times;</button>
+        <div class="gallery-stage" id="galleryStage"></div>
+        <div class="gallery-toolbar">
+          <button type="button" class="gallery-nav-btn" id="galleryPrev" aria-label="Previous">&lsaquo;</button>
+          <span class="gallery-counter" id="galleryCounter" aria-live="polite"></span>
+          <button type="button" class="gallery-nav-btn" id="galleryNext" aria-label="Next">&rsaquo;</button>
+        </div>
+      </div>
+    </div>
   </main>
 
+  <script src="media-db.js"></script>
   <script src="log.js"></script>
   <script src="app.js"></script>
 </body>

@@ -1,26 +1,32 @@
 {
-  "name": "ETMCLEANING Checklist",
+  "name": "ETM Checklist",
   "short_name": "ETM Checklist",
-  "description": "Cleaning checklists, timers, and logs for ETMCLEANING locations.",
+  "description": "ETM Checklist — cleaning checklists, timers, and logs for ETMCLEANING locations.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#f6f9fc",
-  "theme_color": "#0b0b0d",
+  "theme_color": "#4d6885",
   "categories": ["productivity", "business", "utilities"],
   "icons": [
+    {
+      "src": "icons/app-icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/app-icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
     {
       "src": "icons/icon.svg",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any"
-    },
-    {
-      "src": "icons/icon-maskable.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "maskable"
     }
   ]
 }

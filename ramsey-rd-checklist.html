@@ -3,15 +3,16 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <meta name="theme-color" content="#0b0b0d" />
+  <meta name="theme-color" content="#4d6885" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="apple-mobile-web-app-title" content="ETM Checklist" />
-  <title>Ramsey Rd - Cleaning Checklist</title>
+  <title>Ramsey Rd — ETM Checklist</title>
   <link rel="manifest" href="manifest.json" />
+  <link rel="icon" type="image/png" sizes="512x512" href="icons/app-icon.png" />
   <link rel="icon" type="image/svg+xml" href="icons/favicon.svg" />
-  <link rel="apple-touch-icon" href="icons/icon.svg" />
+  <link rel="apple-touch-icon" href="icons/app-icon.png" />
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
@@ -24,6 +25,7 @@
           <span class="timer-icon" id="timerIcon">&#10074;&#10074;</span>
         </button>
       </div>
+      <p class="timer-avg-line" id="timerAvgLine" hidden aria-live="polite"></p>
     </div>
 
     <section class="checklist-page" data-storage-key="checklist-ramsey-rd">
@@ -43,6 +45,7 @@
         <div class="progress-bar">
           <div class="progress-fill" id="progressFill"></div>
         </div>
+        <p class="next-task-hint" id="nextTaskHint" aria-live="polite"></p>
       </div>
 
       <div class="checklist">
@@ -51,6 +54,14 @@
         <section class="task-group notes-group">
           <h2>Notes for This Cleaning</h2>
           <textarea data-note-key="notes-current" rows="3" placeholder="Anything special about today's cleaning? Special requests, areas to focus on, etc."></textarea>
+        </section>
+
+        <!-- Unloading -->
+        <section class="task-group">
+          <h2>Unloading</h2>
+          <ul class="task-list">
+            <li><label><input type="checkbox" /><span>Unload cleaning supplies and tools from vehicle</span></label></li>
+          </ul>
         </section>
 
         <!-- Disposables -->
@@ -150,6 +161,17 @@
           <h2>Free Add-Ons</h2>
           <p class="optional-subtitle">(Only do if you have extra time)</p>
           <ul class="task-list">
+            <li><label><input type="checkbox" /><span>Leave Supplies/Inventory Card</span></label></li>
+          </ul>
+        </section>
+
+        <!-- Before You Leave -->
+        <section class="task-group">
+          <h2>Before You Leave</h2>
+          <ul class="task-list">
+            <li><label><input type="checkbox" /><span>Double check all checklist items are complete</span></label></li>
+            <li><label><input type="checkbox" /><span>Set alarm</span></label></li>
+            <li><label><input type="checkbox" /><span>Double check doors are locked on exit</span></label></li>
           </ul>
         </section>
 
@@ -158,6 +180,27 @@
           <h2>Notes for Next Cleaning</h2>
           <textarea data-note-key="notes-next" rows="4" placeholder="Anything to flag for next time? Damage, low supplies, etc."></textarea>
         </section>
+
+        <!-- Upload After Photos (last section; not part of main progress %) -->
+        <section class="task-group photo-upload-group" aria-label="Upload after photos">
+          <h2>Upload photos or videos</h2>
+          <p class="photo-upload-subtitle">After photos (optional)</p>
+          <div class="photo-upload-body">
+            <div class="photo-upload-actions">
+              <input type="file" id="photoInput" class="photo-file-input" accept="image/*,video/*,.heic,.heif" multiple hidden />
+              <label class="btn-photo-add" for="photoInput">Add photos or videos</label>
+              <span class="photo-count" id="photoCount" aria-live="polite">0/10</span>
+            </div>
+            <p class="photo-upload-hint">Maximum 10 items (photos or short videos).</p>
+            <p class="photo-upload-status" id="photoUploadStatus" role="status" aria-live="polite" hidden></p>
+            <div class="photo-thumbs" id="photoThumbs"></div>
+          </div>
+        </section>
+      </div>
+
+      <div class="cancel-cleaning-bar" id="cancelCleaningBar" hidden>
+        <p class="cancel-cleaning-hint">No checklist tasks are completed yet. Cancel if this session should not count.</p>
+        <button type="button" class="btn-secondary btn-cancel-session" id="cancelCleaningBtn">Cancel cleaning</button>
       </div>
 
       <div class="checklist-actions">
@@ -170,6 +213,12 @@
       </div>
     </section>
 
+    <div class="milestone-banner" id="milestoneBanner" hidden aria-live="polite">
+      <div class="milestone-card" id="milestoneCard">
+        <span class="milestone-text" id="milestoneText"></span>
+      </div>
+    </div>
+
     <div class="modal-backdrop" id="incompleteModal">
       <div class="modal" role="dialog" aria-modal="true" aria-labelledby="incompleteTitle">
         <h2 id="incompleteTitle">Not All Tasks Were Completed</h2>
@@ -180,8 +229,19 @@
         </div>
       </div>
     </div>
+
+    <div class="modal-backdrop" id="summaryModal">
+      <div class="modal modal-summary" role="dialog" aria-modal="true" aria-labelledby="summaryTitle">
+        <h2 id="summaryTitle" class="summary-title">Cleaning wrapped up</h2>
+        <p class="summary-message" id="summaryMessage"></p>
+        <div class="modal-actions modal-actions-single">
+          <button type="button" class="modal-btn modal-primary-solid" id="summaryContinueBtn">Continue</button>
+        </div>
+      </div>
+    </div>
   </main>
 
+  <script src="media-db.js"></script>
   <script src="checklist.js"></script>
   <script src="app.js"></script>
 </body>

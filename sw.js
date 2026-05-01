@@ -1,7 +1,8 @@
 // ETMCLEANING Checklist — Service Worker
+// While developing: open any page with ?nosw=1 to unregister workers and avoid stale caches.
 // Bumps the version below to invalidate the cache and force users to get
 // the latest files on their next visit.
-const CACHE_VERSION = 'v4';
+const CACHE_VERSION = 'v27';
 const CACHE_NAME = 'etm-checklist-' + CACHE_VERSION;
 
 const PRECACHE_URLS = [
@@ -13,11 +14,18 @@ const PRECACHE_URLS = [
   './warehouse.html',
   './styles.css',
   './checklist.js',
+  './media-db.js',
   './log.js',
   './manifest.json',
+  './icons/app-icon.png',
   './icons/icon.svg',
   './icons/icon-maskable.svg',
-  './icons/favicon.svg'
+  './icons/favicon.svg',
+  './sounds/task.mp3',
+  './sounds/milestone-25.mp3',
+  './sounds/milestone-50.mp3',
+  './sounds/milestone-75.mp3',
+  './sounds/milestone-100.mp3'
 ];
 
 self.addEventListener('install', (event) => {

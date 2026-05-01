@@ -3,15 +3,16 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <meta name="theme-color" content="#0b0b0d" />
+  <meta name="theme-color" content="#4d6885" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="apple-mobile-web-app-title" content="ETM Checklist" />
   <title>Thrift at the Warehouse - Ramsey Rd</title>
   <link rel="manifest" href="manifest.json" />
+  <link rel="icon" type="image/png" sizes="512x512" href="icons/app-icon.png" />
   <link rel="icon" type="image/svg+xml" href="icons/favicon.svg" />
-  <link rel="apple-touch-icon" href="icons/icon.svg" />
+  <link rel="apple-touch-icon" href="icons/app-icon.png" />
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
@@ -60,6 +61,10 @@
         </div>
       </div>
 
+      <p class="block-notice" id="blockNotice" hidden>
+        A cleaning is in progress at another location. Finish or reset that one before starting a new cleaning here.
+      </p>
+
       <a class="start-btn" href="ramsey-rd-checklist.html"
          data-storage-key="checklist-ramsey-rd"
          id="startCleaningBtn">Start Cleaning</a>
@@ -69,12 +74,64 @@
   </main>
 
   <script>
-    document.getElementById('startCleaningBtn').addEventListener('click', function () {
-      var key = this.dataset.storageKey + ':startedAt';
-      if (!localStorage.getItem(key)) {
-        localStorage.setItem(key, Date.now().toString());
+    (function () {
+      var btn = document.getElementById('startCleaningBtn');
+      var notice = document.getElementById('blockNotice');
+      var key = btn.dataset.storageKey;
+
+      function isSessionActive() {
+        var startedAt = localStorage.getItem(key + ':startedAt');
+        var accumulated = localStorage.getItem(key + ':accumulatedMs');
+        var completed = localStorage.getItem(key + ':completedAt');
+        return (startedAt || accumulated) && !completed;
       }
-    });
+
+      function findActiveOtherLocation() {
+        for (var i = 0; i < localStorage.length; i++) {
+          var k = localStorage.key(i);
+          if (!k) continue;
+          var m = k.match(/^(checklist-[^:]+):(startedAt|accumulatedMs)$/);
+          if (m && m[1] !== key) {
+            var completed = localStorage.getItem(m[1] + ':completedAt');
+            if (!completed) return m[1];
+          }
+        }
+        return null;
+      }
+
+      function syncBtnState() {
+        btn.classList.remove('in-progress', 'blocked');
+        notice.hidden = true;
+        if (isSessionActive()) {
+          btn.classList.add('in-progress');
+          btn.textContent = 'Continue Cleaning';
+        } else if (findActiveOtherLocation()) {
+          btn.classList.add('blocked');
+          btn.setAttribute('aria-disabled', 'true');
+          btn.textContent = 'Cleaning In Progress Elsewhere';
+          notice.hidden = false;
+        } else {
+          btn.removeAttribute('aria-disabled');
+          btn.textContent = 'Start Cleaning';
+        }
+      }
+
+      btn.addEventListener('click', function (e) {
+        if (btn.classList.contains('blocked')) {
+          e.preventDefault();
+          notice.classList.remove('shake');
+          void notice.offsetWidth;
+          notice.classList.add('shake');
+          return;
+        }
+        var startedKey = key + ':startedAt';
+        if (!localStorage.getItem(startedKey)) {
+          localStorage.setItem(startedKey, Date.now().toString());
+        }
+      });
+
+      syncBtnState();
+    })();
   </script>
   <script src="app.js"></script>
 </body>
