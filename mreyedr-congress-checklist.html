@@ -102,6 +102,21 @@
           </ul>
         </section>
 
+        <section class="task-group photo-upload-group" aria-label="Upload photos">
+          <h2>Upload photos or videos</h2>
+          <p class="photo-upload-subtitle">Optional — saved with this cleaning in the log</p>
+          <div class="photo-upload-body">
+            <div class="photo-upload-actions">
+              <input type="file" id="photoInput" class="photo-file-input" accept="image/*,video/*,.heic,.heif" multiple hidden />
+              <label class="btn-photo-add" for="photoInput">Add photos or videos</label>
+              <span class="photo-count" id="photoCount" aria-live="polite">0/10</span>
+            </div>
+            <p class="photo-upload-hint">Maximum 10 items (photos or short videos).</p>
+            <p class="photo-upload-status" id="photoUploadStatus" role="status" aria-live="polite" hidden></p>
+            <div class="photo-thumbs" id="photoThumbs"></div>
+          </div>
+        </section>
+
       </div>
 
       <div class="cancel-cleaning-bar" id="cancelCleaningBar" hidden>
