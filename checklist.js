@@ -10,6 +10,23 @@
   const taskTimingsKey = storageKey + ':taskTimings';
   const milestonesKey = storageKey + ':milestones';
 
+  /** When task markup changes, bump `data-checklist-revision` on the page to drop stale checkbox/timing state. */
+  const checklistRevision = (page.dataset.checklistRevision || '').trim();
+  const checklistRevisionKey = storageKey + ':checklistRevision';
+  if (checklistRevision) {
+    try {
+      const prev = localStorage.getItem(checklistRevisionKey);
+      if (prev !== checklistRevision) {
+        localStorage.removeItem(storageKey);
+        localStorage.removeItem(taskTimingsKey);
+        localStorage.removeItem(milestonesKey);
+        localStorage.setItem(checklistRevisionKey, checklistRevision);
+      }
+    } catch (e) {
+      /* ignore */
+    }
+  }
+
   // ---------- Sounds ----------
   // Drop matching files into the /sounds folder; missing files are silently skipped.
   const SOUND_FILES = {
