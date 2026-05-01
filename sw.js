@@ -2,7 +2,7 @@
 // While developing: open any page with ?nosw=1 to unregister workers and avoid stale caches.
 // Bumps the version below to invalidate the cache and force users to get
 // the latest files on their next visit.
-const CACHE_VERSION = 'v46';
+const CACHE_VERSION = 'v48';
 const CACHE_NAME = 'etm-checklist-' + CACHE_VERSION;
 
 const PRECACHE_URLS = [
@@ -17,6 +17,15 @@ const PRECACHE_URLS = [
   './belterra-eye-care.html',
   './belterra-eye-care-checklist.html',
   './belterra-eye-care-log.html',
+  './the-commune.html',
+  './the-commune-checklist.html',
+  './the-commune-log.html',
+  './innerhouse.html',
+  './innerhouse-checklist.html',
+  './innerhouse-log.html',
+  './mreyedr-congress.html',
+  './mreyedr-congress-checklist.html',
+  './mreyedr-congress-log.html',
   './warehouse.html',
   './styles.css',
   './checklist.js',
@@ -40,7 +49,15 @@ const PRECACHE_URLS = [
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(PRECACHE_URLS))
+    caches.open(CACHE_NAME).then((cache) =>
+      Promise.all(
+        PRECACHE_URLS.map((url) =>
+          cache.add(url).catch(() => {
+            /* One bad URL must not fail the whole install (missing file / offline). */
+          })
+        )
+      )
+    )
   );
   self.skipWaiting();
 });
