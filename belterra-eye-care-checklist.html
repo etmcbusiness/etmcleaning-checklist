@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en" style="background-color: #ffffff; color-scheme: only light;">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="color-scheme" content="only light" />
+  <meta name="supported-color-schemes" content="light" />
+  <meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff" />
+  <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#ffffff" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="ETM Checklist" />
+  <title>Belterra Eye Care — ETM Checklist</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png" />
+  <link rel="icon" type="image/png" sizes="512x512" href="icons/app-icon.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png" />
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    html {
+      background-color: #ffffff !important;
+      color-scheme: only light !important;
+      overscroll-behavior-y: none;
+      position: relative;
+      isolation: isolate;
+    }
+    body {
+      background-color: #ffffff !important;
+      overscroll-behavior-y: none;
+      position: relative;
+      isolation: isolate;
+    }
+    html::before,
+    body::before {
+      content: "";
+      position: fixed;
+      top: -100vh;
+      left: 0;
+      right: 0;
+      width: 100%;
+      height: 300vh;
+      z-index: -1;
+      background-color: #ffffff;
+      pointer-events: none;
+    }
+    main {
+      background-color: #ffffff !important;
+      min-height: 100vh;
+      min-height: 100dvh;
+    }
+    .location-page,
+    .checklist-page,
+    .log-page {
+      background-color: #ffffff !important;
+    }
+  </style>
+</head>
+<body style="background-color: #ffffff;">
+  <main>
+    <section class="checklist-page" data-storage-key="checklist-belterra-eye-care">
+      <a class="back-link" href="belterra-eye-care.html">&larr; Back to Location</a>
+
+      <header class="checklist-header">
+        <p class="loc-eyebrow">Belterra Eye Care</p>
+        <h1>Cleaning Checklist</h1>
+        <p class="checklist-date" id="todayDate"></p>
+      </header>
+
+      <div class="progress-wrap">
+        <div class="progress-row">
+          <span class="progress-label">Progress</span>
+          <span class="progress-count"><span id="progressPct">0</span>%</span>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill" id="progressFill"></div>
+        </div>
+        <p class="next-task-hint" id="nextTaskHint" aria-live="polite"></p>
+      </div>
+
+      <div class="cleaning-timer" id="cleaningTimer" hidden>
+        <span class="timer-label" id="timerLabel">Cleaning Time</span>
+        <div class="timer-row">
+          <span class="timer-display" id="timerDisplay">00:00:00</span>
+          <button type="button" class="timer-toggle" id="timerToggle" aria-label="Pause timer">
+            <span class="timer-icon" id="timerIcon">&#10074;&#10074;</span>
+          </button>
+        </div>
+        <p class="timer-avg-line" id="timerAvgLine" hidden aria-live="polite"></p>
+      </div>
+
+      <div class="checklist">
+
+        <!-- Notes for This Cleaning -->
+        <section class="task-group notes-group">
+          <h2>Notes for This Cleaning</h2>
+          <textarea data-note-key="notes-current" rows="3" placeholder="Anything special about today's cleaning? Special requests, areas to focus on, etc."></textarea>
+        </section>
+
+        <!-- Unloading -->
+        <section class="task-group">
+          <h2>Unloading</h2>
+          <ul class="task-list">
+            <li><label><input type="checkbox" /><span>Unload cleaning supplies and tools from vehicle</span></label></li>
+          </ul>
+        </section>
+
+        <!-- Disposables -->
+        <section class="task-group">
+          <h2>Disposables</h2>
+          <ul class="task-list">
+            <li><label><input type="checkbox" /><span>Replace / Restock: Hand Soap, Toilet Paper, Paper Towels</span></label></li>
+            <li><label><input type="checkbox" /><span>Take out trash</span></label></li>
+            <li><label><input type="checkbox" /><span>Replace trash can liners / bags</span></label></li>
+          </ul>
+        </section>
+
+        <!-- Dusting -->
+        <section class="task-group">
+          <h2>Dusting</h2>
+          <span class="cleaner-badge">Use: Electric Spray Duster</span>
+          <ul class="task-list">
+            <li><label><input type="checkbox" /><span>Use electric spray duster</span></label></li>
+            <li><label><input type="checkbox" /><span>Dust up to 12 feet if necessary</span></label></li>
+          </ul>
+        </section>
+
+        <!-- Stainless Steel -->
+        <section class="task-group">
+          <h2>Stainless Steel</h2>
+          <span class="cleaner-badge">Use: Stainless Steel Cleaner</span>
+          <ul class="task-list">
+            <li><label><input type="checkbox" /><span>Wipe every stainless steel dispenser</span></label></li>
+            <li><label><input type="checkbox" /><span>Wipe every drinking / water fountain</span></label></li>
+            <li><label><input type="checkbox" /><span>Wipe outside of appliances <em>(spot clean)</em></span></label></li>
+          </ul>
+        </section>
+
+        <!-- Quartz/Granite/Smooth Stone -->
+        <section class="task-group">
+          <h2>Quartz / Granite / Smooth Stone Surfaces</h2>
+          <span class="cleaner-badge">Use: Quartz &amp; Stone Cleaner</span>
+          <ul class="task-list">
+            <li><label><input type="checkbox" /><span>Wipe each stone / granite / smooth stone surface</span></label></li>
+          </ul>
+        </section>
+
+        <!-- General Areas -->
+        <section class="task-group">
+          <h2>General Areas</h2>
+          <span class="cleaner-badge">Use: All-Purpose Cleaner</span>
+          <ul class="task-list">
+            <li><label><input type="checkbox" /><span>Wipe down all horizontal surfaces</span></label></li>
+            <li><label><input type="checkbox" /><span>Spot clean vertical surfaces</span></label></li>
+            <li><label><input type="checkbox" /><span>Straighten up chairs, table surfaces &amp; other misc items</span></label></li>
+          </ul>
+        </section>
+
+        <!-- Bathrooms -->
+        <section class="task-group">
+          <h2>Bathrooms</h2>
+          <span class="cleaner-badge">Use: All-Purpose Cleaner</span>
+          <ul class="task-list">
+            <li><label><input type="checkbox" /><span>Wipe sinks</span></label></li>
+            <li><label><input type="checkbox" /><span>Wipe diaper changing table</span></label></li>
+            <li>
+              <label>
+                <input type="checkbox" />
+                <span>Clean toilet
+                  <em>Wipe entire exterior (top to bottom) &amp; clean interior with Toilet Bowl Cleaner and Brush</em>
+                </span>
+              </label>
+            </li>
+          </ul>
+        </section>
+
+        <!-- Glass and Mirrors -->
+        <section class="task-group">
+          <h2>Glass &amp; Mirrors</h2>
+          <span class="cleaner-badge">Use: Glass Cleaner</span>
+          <p class="process-note">
+            <strong>Process:</strong> Dust (Rag 1) &rarr; Spray &rarr; Wipe (Rag 2) &rarr; Dust again (Rag 1)
+          </p>
+          <ul class="task-list">
+            <li><label><input type="checkbox" /><span>Clean every mirror</span></label></li>
+            <li><label><input type="checkbox" /><span>Clean every glass door <em>(spot clean)</em></span></label></li>
+            <li><label><input type="checkbox" /><span>Clean every glass display <em>(spot clean)</em></span></label></li>
+          </ul>
+        </section>
+
+        <!-- Floors -->
+        <section class="task-group">
+          <h2>Floors</h2>
+          <ul class="task-list">
+            <li><label><input type="checkbox" /><span>Vacuum all floors</span></label></li>
+            <li><label><input type="checkbox" /><span>Mop all moppable floors</span></label></li>
+          </ul>
+        </section>
+
+        <!-- Free Add-Ons (Optional - does not count toward progress) -->
+        <section class="task-group optional">
+          <h2>Free Add-Ons</h2>
+          <p class="optional-subtitle">(Only do if you have extra time)</p>
+          <ul class="task-list">
+            <li><label><input type="checkbox" /><span>Leave Supplies/Inventory Card</span></label></li>
+          </ul>
+        </section>
+
+        <!-- Before You Leave -->
+        <section class="task-group">
+          <h2>Before You Leave</h2>
+          <ul class="task-list">
+            <li><label><input type="checkbox" /><span>Double check all checklist items are complete</span></label></li>
+            <li><label><input type="checkbox" /><span>Set alarm</span></label></li>
+            <li><label><input type="checkbox" /><span>Double check doors are locked on exit</span></label></li>
+          </ul>
+        </section>
+
+        <!-- Notes for Next Cleaning -->
+        <section class="task-group notes-group">
+          <h2>Notes for Next Cleaning</h2>
+          <textarea data-note-key="notes-next" rows="4" placeholder="Anything to flag for next time? Damage, low supplies, etc."></textarea>
+        </section>
+
+        <!-- Upload After Photos (last section; not part of main progress %) -->
+        <section class="task-group photo-upload-group" aria-label="Upload after photos">
+          <h2>Upload photos or videos</h2>
+          <p class="photo-upload-subtitle">After photos (optional)</p>
+          <div class="photo-upload-body">
+            <div class="photo-upload-actions">
+              <input type="file" id="photoInput" class="photo-file-input" accept="image/*,video/*,.heic,.heif" multiple hidden />
+              <label class="btn-photo-add" for="photoInput">Add photos or videos</label>
+              <span class="photo-count" id="photoCount" aria-live="polite">0/10</span>
+            </div>
+            <p class="photo-upload-hint">Maximum 10 items (photos or short videos).</p>
+            <p class="photo-upload-status" id="photoUploadStatus" role="status" aria-live="polite" hidden></p>
+            <div class="photo-thumbs" id="photoThumbs"></div>
+          </div>
+        </section>
+      </div>
+
+      <div class="cancel-cleaning-bar" id="cancelCleaningBar" hidden>
+        <p class="cancel-cleaning-hint">No checklist tasks are completed yet. Cancel if this session should not count.</p>
+        <button type="button" class="btn-secondary btn-cancel-session" id="cancelCleaningBtn">Cancel cleaning</button>
+      </div>
+
+      <div class="checklist-actions">
+        <button type="button" class="btn-secondary" id="resetBtn">Reset Checklist</button>
+        <button type="button" class="btn-primary" id="completeBtn">Mark Complete</button>
+      </div>
+
+      <div class="complete-banner" id="completeBanner" hidden>
+        Checklist complete! &nbsp;<span id="completedAt"></span>
+      </div>
+    </section>
+
+    <div class="milestone-banner" id="milestoneBanner" hidden aria-live="polite">
+      <div class="milestone-card" id="milestoneCard">
+        <span class="milestone-text" id="milestoneText"></span>
+      </div>
+    </div>
+
+    <div class="modal-backdrop" id="incompleteModal">
+      <div class="modal" role="dialog" aria-modal="true" aria-labelledby="incompleteTitle">
+        <h2 id="incompleteTitle">Not All Tasks Were Completed</h2>
+        <p>Do you still want to complete today's cleaning?</p>
+        <div class="modal-actions">
+          <button type="button" class="modal-btn modal-no" id="modalGoBack">No &mdash; Go Back &amp; Double Check</button>
+          <button type="button" class="modal-btn modal-yes" id="modalConfirm">Yes &mdash; Complete Anyway</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-backdrop" id="summaryModal">
+      <div class="modal modal-summary" role="dialog" aria-modal="true" aria-labelledby="summaryTitle">
+        <h2 id="summaryTitle" class="summary-title">Cleaning wrapped up</h2>
+        <p class="summary-message" id="summaryMessage"></p>
+        <div class="modal-actions modal-actions-single">
+          <button type="button" class="modal-btn modal-primary-solid" id="summaryContinueBtn">Continue</button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="media-db.js"></script>
+  <script src="checklist.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
+
