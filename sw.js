@@ -2,7 +2,7 @@
 // While developing: open any page with ?nosw=1 to unregister workers and avoid stale caches.
 // Bumps the version below to invalidate the cache and force users to get
 // the latest files on their next visit.
-const CACHE_VERSION = 'v29';
+const CACHE_VERSION = 'v33';
 const CACHE_NAME = 'etm-checklist-' + CACHE_VERSION;
 
 const PRECACHE_URLS = [
@@ -15,6 +15,7 @@ const PRECACHE_URLS = [
   './styles.css',
   './checklist.js',
   './media-db.js',
+  './backup-restore.js',
   './log.js',
   './manifest.json',
   './icons/app-icon.png',

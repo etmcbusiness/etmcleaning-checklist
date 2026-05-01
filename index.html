@@ -16,7 +16,7 @@
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <main>
+  <main class="home-main">
     <section class="hero">
       <h1>ETM Checklist<br /><span class="accent">Choose a location</span></h1>
     </section>
@@ -30,8 +30,32 @@
         <a class="location-btn" href="warehouse.html" data-storage-key="checklist-warehouse">Thrift at the Warehouse: Warehouse Location</a>
       </div>
     </section>
+
+    <section class="backup-bar" id="device-backup" aria-label="Backup and restore">
+      <div class="backup-bar-inner">
+        <div class="backup-actions">
+          <button type="button" class="btn-backup" id="fullBackupBtn">Save all data</button>
+          <button type="button" class="btn-backup btn-backup-danger" id="replaceAllBtn">Replace all data</button>
+        </div>
+        <input
+          type="file"
+          id="restoreFileInput"
+          class="backup-file-input"
+          accept="application/json,.json"
+          aria-label="Choose backup JSON file to restore"
+        />
+        <div class="backup-hint-placement">
+          <p class="backup-bar-hint">
+            Removing this app from the home screen or clearing site data can delete everything stored here. Save downloads one JSON file (to Files or Downloads). Replace picks that file and overwrites this device—back up first if you might need your current data. Large media may make the file slow or very big.
+          </p>
+        </div>
+        <p class="backup-bar-status" id="backupStatus" role="status" aria-live="polite"></p>
+      </div>
+    </section>
   </main>
 
+  <script src="media-db.js"></script>
+  <script src="backup-restore.js"></script>
   <script>
     (function () {
       var buttons = document.querySelectorAll('.location-btn[data-storage-key]');
@@ -51,6 +75,87 @@
       if (hasActive) {
         document.getElementById('activeCleaningHint').hidden = false;
       }
+    })();
+  </script>
+  <script>
+    (function () {
+      var backupBtn = document.getElementById('fullBackupBtn');
+      var replaceBtn = document.getElementById('replaceAllBtn');
+      var fileInput = document.getElementById('restoreFileInput');
+      var statusEl = document.getElementById('backupStatus');
+      var E = window.EtmBackup;
+
+      if (!backupBtn || !replaceBtn || !fileInput || !statusEl || !E) return;
+
+      backupBtn.addEventListener('click', function () {
+        backupBtn.disabled = true;
+        replaceBtn.disabled = true;
+        E.downloadFullBackup(function (msg) {
+          statusEl.textContent = msg;
+        })
+          .catch(function () {
+            statusEl.textContent =
+              'Could not create the file. It may be too large—try removing some photos/videos from a log, or use the log export.';
+          })
+          .finally(function () {
+            backupBtn.disabled = false;
+            replaceBtn.disabled = false;
+          });
+      });
+
+      replaceBtn.addEventListener('click', function () {
+        fileInput.click();
+      });
+
+      fileInput.addEventListener('change', function () {
+        var file = this.files && this.files[0];
+        this.value = '';
+        if (!file) return;
+
+        var reader = new FileReader();
+        reader.onload = function () {
+          var data;
+          try {
+            data = JSON.parse(reader.result);
+          } catch (e) {
+            statusEl.textContent = 'Could not read that file. Pick a .json backup from this app.';
+            return;
+          }
+          var v = E.validateBackup(data);
+          if (!v.ok) {
+            statusEl.textContent = v.error;
+            return;
+          }
+          var msg =
+            'Replace ALL data on this device with the backup?\n\n' +
+            'Current checklists, logs, timers, notes, and photos here will be overwritten. This cannot be undone except from another backup file.\n\n' +
+            'OK = restore from file. Cancel = keep current data.';
+          if (!window.confirm(msg)) {
+            statusEl.textContent = 'Restore canceled.';
+            return;
+          }
+          backupBtn.disabled = true;
+          replaceBtn.disabled = true;
+          statusEl.textContent = 'Restoring…';
+          E.replaceAllDataFromBackup(v.data)
+            .then(function () {
+              statusEl.textContent = 'Restore complete. Reloading…';
+              window.setTimeout(function () {
+                window.location.reload();
+              }, 300);
+            })
+            .catch(function (err) {
+              statusEl.textContent =
+                'Restore failed: ' + (err && err.message ? err.message : 'unknown error');
+              backupBtn.disabled = false;
+              replaceBtn.disabled = false;
+            });
+        };
+        reader.onerror = function () {
+          statusEl.textContent = 'Could not read the file.';
+        };
+        reader.readAsText(file);
+      });
     })();
   </script>
   <script src="app.js"></script>

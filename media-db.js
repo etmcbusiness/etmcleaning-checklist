@@ -364,6 +364,133 @@
     );
   }
 
+  /**
+   * Serializes every row in the photo store for backup (data URLs for blobs).
+   */
+  function blobToDataURL(blob) {
+    return new Promise((resolve, reject) => {
+      const fr = new FileReader();
+      fr.onloadend = () => resolve(fr.result);
+      fr.onerror = () => reject(fr.error);
+      fr.readAsDataURL(blob);
+    });
+  }
+
+  function exportAllPhotoRowsSerialized() {
+    return openDB().then(
+      (db) =>
+        new Promise((resolve, reject) => {
+          const tx = db.transaction(STORE, 'readonly');
+          const req = tx.objectStore(STORE).getAll();
+          req.onsuccess = () => {
+            const rows = req.result || [];
+            const work = rows.map((row) =>
+              Promise.all(
+                (row.photos || []).map((p) =>
+                  blobToDataURL(p.blob).then(
+                    (dataUrl) => ({
+                      id: p.id,
+                      name: p.name,
+                      mime: p.mime,
+                      kind: p.kind,
+                      addedAt: p.addedAt,
+                      dataUrl: dataUrl
+                    }),
+                    () => null
+                  )
+                )
+              ).then((photos) => ({
+                locationKey: row.locationKey,
+                photos: photos.filter(Boolean)
+              }))
+            );
+            Promise.all(work).then(resolve).catch(reject);
+          };
+          req.onerror = () => reject(req.error);
+        })
+    );
+  }
+
+  function dataURLToBlob(dataUrl) {
+    if (!dataUrl || typeof dataUrl !== 'string') {
+      throw new Error('bad data url');
+    }
+    const comma = dataUrl.indexOf(',');
+    if (comma === -1) throw new Error('bad data url');
+    const meta = dataUrl.slice(0, comma);
+    const base64 = dataUrl.slice(comma + 1).trim();
+    const mimeMatch = meta.match(/^data:([^;,]+)/i);
+    const mime = mimeMatch ? mimeMatch[1] : 'application/octet-stream';
+    const binary = atob(base64);
+    const len = binary.length;
+    const bytes = new Uint8Array(len);
+    for (let i = 0; i < len; i++) bytes[i] = binary.charCodeAt(i);
+    return new Blob([bytes], { type: mime });
+  }
+
+  function clearEntirePhotoStore() {
+    return openDB().then(
+      (db) =>
+        new Promise((resolve, reject) => {
+          const tx = db.transaction(STORE, 'readwrite');
+          tx.oncomplete = () => resolve();
+          tx.onerror = () => reject(tx.error);
+          const store = tx.objectStore(STORE);
+          const req = store.getAllKeys();
+          req.onsuccess = () => {
+            const keys = req.result || [];
+            keys.forEach((k) => store.delete(k));
+          };
+          req.onerror = () => reject(req.error);
+        })
+    );
+  }
+
+  /**
+   * Replaces all rows in the photo store with backup payloads (data URLs → blobs).
+   */
+  function importSerializedPhotoRows(rows) {
+    const list = Array.isArray(rows) ? rows : [];
+    return clearEntirePhotoStore().then(() => {
+      let chain = Promise.resolve();
+      list.forEach((row) => {
+        if (!row || row.locationKey == null || row.locationKey === '') return;
+        const key = String(row.locationKey);
+        chain = chain.then(() => {
+          const photos = [];
+          for (const item of row.photos || []) {
+            if (!item || !item.dataUrl) continue;
+            try {
+              const blob = dataURLToBlob(item.dataUrl);
+              const mime = item.mime || blob.type || '';
+              let kind = item.kind;
+              if (!kind) {
+                kind = fileKindFromMimeOrName({
+                  type: mime,
+                  name: item.name || '',
+                  size: blob.size
+                });
+              }
+              if (!kind) kind = blob.size > 35 * 1024 * 1024 ? 'video' : 'image';
+              photos.push({
+                id: item.id || genId(),
+                name: item.name || 'media',
+                mime: mime || 'application/octet-stream',
+                kind: kind,
+                addedAt: item.addedAt != null ? item.addedAt : Date.now(),
+                blob: blob
+              });
+            } catch (e) {
+              /* skip corrupt attachment */
+            }
+          }
+          return photosWithIDBSafeBlobs(photos).then((clean) => rawPut(key, clean));
+        });
+      });
+      return chain;
+    });
+  }
+
   global.EtmMediaDB = {
     MAX_ITEMS: MAX_ITEMS,
     MAX_VIDEO_BYTES: MAX_VIDEO_BYTES,
@@ -394,6 +521,9 @@
     fileKindFromMimeOrName: fileKindFromMimeOrName,
     appendMediaFiles: appendMediaFiles,
     resizeImageToJpeg: resizeImageToJpeg,
-    isVideoItem: isVideoItem
+    isVideoItem: isVideoItem,
+    exportAllPhotoRowsSerialized: exportAllPhotoRowsSerialized,
+    clearEntirePhotoStore: clearEntirePhotoStore,
+    importSerializedPhotoRows: importSerializedPhotoRows
   };
 })(typeof window !== 'undefined' ? window : this);
