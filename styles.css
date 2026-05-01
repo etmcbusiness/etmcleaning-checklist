@@ -22,12 +22,35 @@ html,
 body {
   margin: 0;
   padding: 0;
-  background: #ffffff;
+  background-color: #ffffff;
 }
 
 html {
-  color-scheme: light;
+  color-scheme: only light;
   height: 100%;
+  min-height: 100%;
+  min-height: -webkit-fill-available;
+  overscroll-behavior-y: none;
+  position: relative;
+  isolation: isolate;
+}
+
+/*
+ * Second underlay on the root element — iOS often rubber-bands the <html> layer,
+ * not the body layer.
+ */
+html::before {
+  content: "";
+  position: fixed;
+  top: -100vh;
+  left: 0;
+  right: 0;
+  width: 100%;
+  height: 300vh;
+  min-height: 300%;
+  z-index: -1;
+  background-color: #ffffff;
+  pointer-events: none;
 }
 
 body {
@@ -37,14 +60,42 @@ body {
   line-height: 1.5;
   min-height: 100%;
   min-height: 100dvh;
+  min-height: -webkit-fill-available;
   -webkit-font-smoothing: antialiased;
   -webkit-text-size-adjust: 100%;
   padding-left: env(safe-area-inset-left, 0px);
   padding-right: env(safe-area-inset-right, 0px);
   padding-bottom: env(safe-area-inset-bottom, 0px);
+  overscroll-behavior-y: none;
+  /* Anchor iOS stacking so ::before stays behind content */
+  position: relative;
+  isolation: isolate;
 }
 
-/* iOS PWA / rubber-band: paint white behind every route, not only the dashboard */
+/*
+ * iOS / WebKit PWA: elastic scroll exposes area outside the layout viewport.
+ * A tall fixed white layer prevents the old blue / gray “chrome” from showing.
+ */
+body::before {
+  content: "";
+  position: fixed;
+  top: -100vh;
+  left: 0;
+  right: 0;
+  width: 100%;
+  height: 300vh;
+  min-height: 300%;
+  z-index: -1;
+  background-color: #ffffff;
+  pointer-events: none;
+}
+
+.checklist-page,
+.location-page,
+.log-page {
+  background-color: #ffffff;
+}
+
 main {
   background-color: #ffffff;
   min-height: 100vh;

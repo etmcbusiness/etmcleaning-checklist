@@ -1,4 +1,29 @@
 (function (global) {
+  /** iOS WebKit PWA sometimes tints the overscroll “gutter”; force white on paint. */
+  function paintOverscrollWhite() {
+    var doc = global.document;
+    if (!doc) return;
+    var h = doc.documentElement;
+    var b = doc.body;
+    if (h) {
+      h.style.backgroundColor = '#ffffff';
+      h.style.setProperty('color-scheme', 'only light');
+    }
+    if (b) {
+      b.style.backgroundColor = '#ffffff';
+    }
+  }
+  if (global.document) {
+    if (global.document.readyState === 'loading') {
+      global.document.addEventListener('DOMContentLoaded', paintOverscrollWhite, {
+        once: true
+      });
+    } else {
+      paintOverscrollWhite();
+    }
+    global.addEventListener('pageshow', paintOverscrollWhite);
+  }
+
   var CACHE_PREFIX = 'etm-checklist-';
 
   function deleteAppCaches() {
