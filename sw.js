@@ -2,7 +2,7 @@
 // While developing: open any page with ?nosw=1 to unregister workers and avoid stale caches.
 // Bumps the version below to invalidate the cache and force users to get
 // the latest files on their next visit.
-const CACHE_VERSION = 'v27';
+const CACHE_VERSION = 'v28';
 const CACHE_NAME = 'etm-checklist-' + CACHE_VERSION;
 
 const PRECACHE_URLS = [
@@ -18,6 +18,8 @@ const PRECACHE_URLS = [
   './log.js',
   './manifest.json',
   './icons/app-icon.png',
+  './icons/icon-192.png',
+  './icons/apple-touch-icon.png',
   './icons/icon.svg',
   './icons/icon-maskable.svg',
   './icons/favicon.svg',
