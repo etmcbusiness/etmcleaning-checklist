@@ -343,7 +343,7 @@ a {
   color: var(--black);
 }
 
-.log-table tbody tr:hover {
+.log-table tbody tr.log-row:hover {
   background: var(--light-blue-soft);
 }
 
@@ -358,6 +358,140 @@ a {
   font-size: 13px;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
+}
+
+.duration-pill.small {
+  padding: 2px 10px;
+  font-size: 12px;
+}
+
+.duration-cell {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.expand-arrow {
+  font-size: 12px;
+  color: #6b7785;
+  transition: transform 0.2s ease;
+}
+
+.log-row.expanded .expand-arrow {
+  transform: rotate(90deg);
+  color: var(--light-blue-strong);
+}
+
+.log-details td {
+  background: var(--off-white);
+  padding: 0 !important;
+  border-top: none !important;
+  display: block !important;
+}
+
+.log-details td::before {
+  display: none !important;
+}
+
+.task-breakdown {
+  padding: 14px 18px 18px;
+  display: flex;
+  flex-direction: column;
+}
+
+.task-breakdown.empty {
+  text-align: center;
+  color: #6b7785;
+  font-style: italic;
+  font-size: 14px;
+}
+
+.task-breakdown-head {
+  display: grid;
+  grid-template-columns: 1fr 110px 90px;
+  gap: 12px;
+  padding: 8px 4px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: #6b7785;
+  border-bottom: 1px solid var(--border);
+}
+
+.task-breakdown-head .col-dur,
+.task-breakdown-head .col-cum {
+  text-align: right;
+}
+
+.task-row {
+  display: grid;
+  grid-template-columns: 1fr 110px 90px;
+  gap: 12px;
+  padding: 10px 4px;
+  align-items: center;
+  font-size: 14px;
+  border-bottom: 1px dashed var(--border);
+}
+
+.task-row:last-child {
+  border-bottom: none;
+}
+
+.task-row .task-name {
+  color: var(--black);
+  font-weight: 500;
+}
+
+.task-row.optional .task-name {
+  color: #6b7785;
+}
+
+.task-tag {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 7px;
+  background: var(--light-blue-soft);
+  color: #0a4f72;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  vertical-align: middle;
+}
+
+.task-row .col-dur,
+.task-row .col-cum {
+  text-align: right;
+  font-family: "SF Mono", Menlo, Monaco, Consolas, "Courier New", monospace;
+  font-variant-numeric: tabular-nums;
+  font-size: 13px;
+}
+
+.task-row .col-cum {
+  color: #6b7785;
+}
+
+@media (max-width: 600px) {
+  .task-breakdown-head {
+    grid-template-columns: 1fr 80px 80px;
+    gap: 8px;
+    font-size: 10px;
+  }
+  .task-row {
+    grid-template-columns: 1fr 80px 80px;
+    gap: 8px;
+    font-size: 13px;
+    padding: 12px 4px;
+  }
+  .task-row .col-dur,
+  .task-row .col-cum {
+    font-size: 12px;
+  }
+  .task-breakdown {
+    padding: 12px 14px 14px;
+  }
 }
 
 .log-empty {

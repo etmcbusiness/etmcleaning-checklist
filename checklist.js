@@ -7,6 +7,7 @@
   const startedKey = storageKey + ':startedAt';
   const accumulatedKey = storageKey + ':accumulatedMs';
   const logKey = storageKey + ':log';
+  const taskTimingsKey = storageKey + ':taskTimings';
 
   const checkboxes = Array.from(page.querySelectorAll('input[type="checkbox"]'));
   const requiredCheckboxes = checkboxes.filter(
@@ -202,11 +203,50 @@
     fillEl.style.width = pct + '%';
   }
 
-  checkboxes.forEach((cb) => {
+  function getTaskText(checkbox) {
+    const span = checkbox.parentElement && checkbox.parentElement.querySelector('span');
+    if (!span) return 'Task';
+    let text = '';
+    span.childNodes.forEach((node) => {
+      if (node.nodeType === 3) {
+        text += node.textContent;
+      }
+    });
+    text = text.replace(/\s+/g, ' ').trim();
+    return text || span.textContent.replace(/\s+/g, ' ').trim();
+  }
+
+  function readTaskTimings() {
+    try {
+      const raw = localStorage.getItem(taskTimingsKey);
+      if (!raw) return [];
+      const parsed = JSON.parse(raw);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  function recordTaskCheck(idx, isChecked) {
+    if (!hasSession() || isCompleted()) return;
+    let timings = readTaskTimings().filter((t) => t.idx !== idx);
+    if (isChecked) {
+      timings.push({
+        idx: idx,
+        text: getTaskText(checkboxes[idx]),
+        optional: !!checkboxes[idx].closest('.task-group.optional'),
+        elapsedMs: getElapsedMs()
+      });
+    }
+    localStorage.setItem(taskTimingsKey, JSON.stringify(timings));
+  }
+
+  checkboxes.forEach((cb, idx) => {
     cb.addEventListener('change', () => {
       updateRow(cb);
       updateProgress();
       saveState();
+      recordTaskCheck(idx, cb.checked);
     });
   });
 
@@ -228,6 +268,7 @@
     localStorage.removeItem(completedKey);
     localStorage.removeItem(startedKey);
     localStorage.removeItem(accumulatedKey);
+    localStorage.removeItem(taskTimingsKey);
     banner.hidden = true;
     updateProgress();
     initTimer();
@@ -252,10 +293,15 @@
       if (raw) log = JSON.parse(raw) || [];
     } catch (e) { log = []; }
 
+    const tasks = readTaskTimings()
+      .slice()
+      .sort((a, b) => (a.elapsedMs || 0) - (b.elapsedMs || 0));
+
     log.push({
       sessionStart: sessionStart,
       completedAt: completedAt,
-      elapsedMs: elapsedMs
+      elapsedMs: elapsedMs,
+      tasks: tasks
     });
     localStorage.setItem(logKey, JSON.stringify(log));
   }
@@ -292,6 +338,7 @@
     localStorage.removeItem(completedKey);
     localStorage.removeItem(startedKey);
     localStorage.removeItem(accumulatedKey);
+    localStorage.removeItem(taskTimingsKey);
 
     if (carryNotes.trim() && currentNoteEl) {
       localStorage.setItem(noteStorageKey(currentNoteEl), carryNotes);
