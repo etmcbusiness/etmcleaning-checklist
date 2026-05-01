@@ -2,7 +2,7 @@
 // While developing: open any page with ?nosw=1 to unregister workers and avoid stale caches.
 // Bumps the version below to invalidate the cache and force users to get
 // the latest files on their next visit.
-const CACHE_VERSION = 'v38';
+const CACHE_VERSION = 'v39';
 const CACHE_NAME = 'etm-checklist-' + CACHE_VERSION;
 
 const PRECACHE_URLS = [
@@ -81,6 +81,24 @@ self.addEventListener('fetch', (event) => {
             .match(req)
             .then((c) => c || caches.match('./index.html'))
         )
+    );
+    return;
+  }
+
+  // CSS/JS: network-first when online so every page gets the same freshly deployed
+  // styles and scripts (cache-first here left the dashboard HTML updated but old styles.css).
+  const path = url.pathname;
+  if (/\.(?:css|js)$/i.test(path)) {
+    event.respondWith(
+      fetch(req)
+        .then((response) => {
+          if (response && response.status === 200 && response.type === 'basic') {
+            const clone = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(req, clone));
+          }
+          return response;
+        })
+        .catch(() => caches.match(req))
     );
     return;
   }
