@@ -65,6 +65,9 @@
           <button type="button" class="btn-backup" id="fullBackupBtn">Save data</button>
           <button type="button" class="btn-backup btn-backup-danger" id="replaceAllBtn">Replace</button>
         </div>
+        <button type="button" class="btn-refresh-app" id="refreshAppBtn">
+          Refresh for latest version
+        </button>
         <input
           type="file"
           id="restoreFileInput"
@@ -74,7 +77,7 @@
         />
         <div class="backup-hint-placement">
           <p class="backup-bar-hint">
-            Removing this app from the home screen or clearing site data can delete everything stored here. Save downloads one JSON file (to Files or Downloads). Replace picks that file and overwrites this device—back up first if you might need your current data. Large media may make the file slow or very big.
+            Removing this app from the home screen or clearing site data can delete everything stored here. Save downloads one JSON file (to Files or Downloads). Replace picks that file and overwrites this device—back up first if you might need your current data. Large media may make the file slow or very big. <strong>Refresh for latest version</strong> re-downloads app files from the internet; your checklists and photos stay on this device.
           </p>
         </div>
         <p class="backup-bar-status" id="backupStatus" role="status" aria-live="polite"></p>
@@ -113,11 +116,18 @@
       var backdrop = layer && layer.querySelector('[data-app-update-dismiss]');
       var backupBtn = document.getElementById('fullBackupBtn');
       var replaceBtn = document.getElementById('replaceAllBtn');
+      var refreshBtn = document.getElementById('refreshAppBtn');
       var fileInput = document.getElementById('restoreFileInput');
       var statusEl = document.getElementById('backupStatus');
       var E = window.EtmBackup;
 
-      if (!layer || !updateBtn || !backupBtn || !replaceBtn || !fileInput || !statusEl || !E) return;
+      if (!layer || !updateBtn || !backupBtn || !replaceBtn || !refreshBtn || !fileInput || !statusEl || !E) return;
+
+      function setSheetBusy(isBusy) {
+        backupBtn.disabled = isBusy;
+        replaceBtn.disabled = isBusy;
+        refreshBtn.disabled = isBusy;
+      }
 
       function openAppUpdateMenu() {
         layer.hidden = false;
@@ -150,8 +160,7 @@
       });
 
       backupBtn.addEventListener('click', function () {
-        backupBtn.disabled = true;
-        replaceBtn.disabled = true;
+        setSheetBusy(true);
         E.downloadFullBackup(function (msg) {
           statusEl.textContent = msg;
         })
@@ -160,9 +169,18 @@
               'Could not create the file. It may be too large—try removing some photos/videos from a log, or use the log export.';
           })
           .finally(function () {
-            backupBtn.disabled = false;
-            replaceBtn.disabled = false;
+            setSheetBusy(false);
           });
+      });
+
+      refreshBtn.addEventListener('click', function () {
+        if (!window.EtmAppRefresh || typeof window.EtmAppRefresh.reloadLatest !== 'function') {
+          statusEl.textContent = 'Refresh is not available in this browser.';
+          return;
+        }
+        setSheetBusy(true);
+        statusEl.textContent = 'Getting latest version…';
+        window.EtmAppRefresh.reloadLatest();
       });
 
       replaceBtn.addEventListener('click', function () {
@@ -196,8 +214,7 @@
             statusEl.textContent = 'Restore canceled.';
             return;
           }
-          backupBtn.disabled = true;
-          replaceBtn.disabled = true;
+          setSheetBusy(true);
           statusEl.textContent = 'Restoring…';
           E.replaceAllDataFromBackup(v.data)
             .then(function () {
@@ -209,8 +226,7 @@
             .catch(function (err) {
               statusEl.textContent =
                 'Restore failed: ' + (err && err.message ? err.message : 'unknown error');
-              backupBtn.disabled = false;
-              replaceBtn.disabled = false;
+              setSheetBusy(false);
             });
         };
         reader.onerror = function () {

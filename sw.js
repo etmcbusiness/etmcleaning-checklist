@@ -2,7 +2,7 @@
 // While developing: open any page with ?nosw=1 to unregister workers and avoid stale caches.
 // Bumps the version below to invalidate the cache and force users to get
 // the latest files on their next visit.
-const CACHE_VERSION = 'v34';
+const CACHE_VERSION = 'v36';
 const CACHE_NAME = 'etm-checklist-' + CACHE_VERSION;
 
 const PRECACHE_URLS = [
@@ -57,6 +57,30 @@ self.addEventListener('fetch', (event) => {
 
   const url = new URL(req.url);
   if (url.origin !== self.location.origin) return;
+
+  // HTML navigations: network first so the installed PWA picks up new pages when online
+  // (cache-first would keep serving an old precached index forever).
+  const isNavigation =
+    req.mode === 'navigate' || req.destination === 'document';
+
+  if (isNavigation) {
+    event.respondWith(
+      fetch(req)
+        .then((response) => {
+          if (response && response.status === 200 && response.type === 'basic') {
+            const clone = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(req, clone));
+          }
+          return response;
+        })
+        .catch(() =>
+          caches
+            .match(req)
+            .then((c) => c || caches.match('./index.html'))
+        )
+    );
+    return;
+  }
 
   event.respondWith(
     caches.match(req).then((cached) => {
