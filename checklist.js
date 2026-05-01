@@ -21,6 +21,7 @@
   };
   const sounds = {};
   Object.keys(SOUND_FILES).forEach((k) => {
+    if (k === 'task') return;
     try {
       const a = new Audio(SOUND_FILES[k]);
       a.preload = 'auto';
@@ -28,7 +29,34 @@
     } catch (e) { /* ignore */ }
   });
 
+  /** Several decoders so rapid checkmarks each get a audible tap (one shared Audio retiggers too fast). */
+  const TASK_SOUND_POOL_SIZE = 4;
+  const taskSoundPool = [];
+  (function initTaskSoundPool() {
+    const url = SOUND_FILES.task;
+    if (!url) return;
+    for (let i = 0; i < TASK_SOUND_POOL_SIZE; i++) {
+      try {
+        const a = new Audio(url);
+        a.preload = 'auto';
+        taskSoundPool.push(a);
+      } catch (e) { /* ignore */ }
+    }
+  })();
+  let taskSoundPoolIndex = 0;
+
   function playSound(name) {
+    if (name === 'task' && taskSoundPool.length) {
+      const s = taskSoundPool[taskSoundPoolIndex % taskSoundPool.length];
+      taskSoundPoolIndex++;
+      try {
+        s.pause();
+        s.currentTime = 0;
+        const p = s.play();
+        if (p && typeof p.catch === 'function') p.catch(() => { /* ignore */ });
+      } catch (e) { /* ignore */ }
+      return;
+    }
     const s = sounds[name];
     if (!s) return;
     try {

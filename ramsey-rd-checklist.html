@@ -17,17 +17,6 @@
 </head>
 <body>
   <main>
-    <div class="cleaning-timer" id="cleaningTimer" hidden>
-      <span class="timer-label" id="timerLabel">Cleaning Time</span>
-      <div class="timer-row">
-        <span class="timer-display" id="timerDisplay">00:00:00</span>
-        <button type="button" class="timer-toggle" id="timerToggle" aria-label="Pause timer">
-          <span class="timer-icon" id="timerIcon">&#10074;&#10074;</span>
-        </button>
-      </div>
-      <p class="timer-avg-line" id="timerAvgLine" hidden aria-live="polite"></p>
-    </div>
-
     <section class="checklist-page" data-storage-key="checklist-ramsey-rd">
       <a class="back-link" href="ramsey-rd.html">&larr; Back to Location</a>
 
@@ -46,6 +35,17 @@
           <div class="progress-fill" id="progressFill"></div>
         </div>
         <p class="next-task-hint" id="nextTaskHint" aria-live="polite"></p>
+      </div>
+
+      <div class="cleaning-timer" id="cleaningTimer" hidden>
+        <span class="timer-label" id="timerLabel">Cleaning Time</span>
+        <div class="timer-row">
+          <span class="timer-display" id="timerDisplay">00:00:00</span>
+          <button type="button" class="timer-toggle" id="timerToggle" aria-label="Pause timer">
+            <span class="timer-icon" id="timerIcon">&#10074;&#10074;</span>
+          </button>
+        </div>
+        <p class="timer-avg-line" id="timerAvgLine" hidden aria-live="polite"></p>
       </div>
 
       <div class="checklist">
