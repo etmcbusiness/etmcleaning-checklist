@@ -91,9 +91,10 @@
           <p class="info-value">White Key Chain</p>
         </div>
 
-        <div class="info-card">
+        <div class="info-card alarm-code-card" data-alarm-code="2289" data-location-key="capital-eye-care">
           <span class="info-label">Alarm</span>
-          <p class="info-value">2289</p>
+          <button type="button" class="btn-alarm-reveal">Click for Alarm Code</button>
+          <p class="info-value alarm-code-value" hidden aria-live="polite"></p>
         </div>
       </div>
 
@@ -107,6 +108,24 @@
 
       <a class="log-btn" href="capital-eye-care-log.html">View Cleaning Log</a>
     </section>
+
+    <div class="modal-backdrop" id="alarmPinBackdrop" aria-hidden="true">
+      <div class="modal alarm-pin-modal" role="dialog" aria-modal="true" aria-labelledby="alarmPinTitle">
+        <h2 id="alarmPinTitle">Alarm code</h2>
+        <p class="alarm-pin-hint">Enter the 4-digit code. It is checked automatically.</p>
+        <label class="alarm-pin-label" for="alarmPinInput">4-digit code</label>
+        <input
+          type="password"
+          inputmode="numeric"
+          id="alarmPinInput"
+          class="alarm-pin-input"
+          maxlength="4"
+          autocomplete="off"
+          autocorrect="off"
+          spellcheck="false"
+        />
+      </div>
+    </div>
   </main>
 
   <script>
@@ -169,6 +188,7 @@
       syncBtnState();
     })();
   </script>
+  <script src="alarm-reveal.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

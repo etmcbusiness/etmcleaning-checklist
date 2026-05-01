@@ -625,6 +625,85 @@ a {
   text-decoration: underline;
 }
 
+/* Alarm code: gated behind PIN on location pages */
+.alarm-code-card .btn-alarm-reveal {
+  display: block;
+  width: 100%;
+  margin-top: 6px;
+  padding: 14px 16px;
+  font-size: 16px;
+  font-weight: 700;
+  font-family: inherit;
+  text-align: center;
+  color: #0a4f72;
+  background: var(--light-blue-soft);
+  border: 2px solid var(--light-blue-strong);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+}
+
+.alarm-code-card .btn-alarm-reveal:hover {
+  background: var(--light-blue);
+  transform: translateY(-1px);
+}
+
+.alarm-code-card .alarm-code-value {
+  margin: 8px 0 0;
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  font-variant-numeric: tabular-nums;
+}
+
+.alarm-pin-modal .alarm-pin-hint {
+  margin: 0 0 12px;
+  font-size: 15px;
+  color: #4a5560;
+}
+
+.alarm-pin-modal .alarm-pin-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: #6b7785;
+  margin: 0 0 6px;
+  text-align: left;
+}
+
+.alarm-pin-modal .alarm-pin-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 14px 16px;
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-align: center;
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  margin-bottom: 0;
+  font-family: inherit;
+}
+
+.alarm-pin-modal .alarm-pin-input:focus {
+  outline: none;
+  border-color: var(--light-blue-strong);
+  box-shadow: 0 0 0 3px rgba(108, 194, 238, 0.35);
+}
+
+.alarm-pin-modal .alarm-pin-input.is-invalid {
+  border-color: #b91c1c;
+  background-color: #fef2f2;
+  box-shadow: 0 0 0 3px rgba(185, 28, 28, 0.2);
+}
+
+.alarm-pin-modal .alarm-pin-input.is-invalid:focus {
+  border-color: #b91c1c;
+  box-shadow: 0 0 0 3px rgba(185, 28, 28, 0.25);
+}
+
 .start-btn {
   display: block;
   width: 100%;
