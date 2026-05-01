@@ -802,9 +802,39 @@ a {
   transform: rotate(45deg);
 }
 
-.task-list li.checked span {
+.task-list li.checked span:not(.task-duration-marker) {
   text-decoration: line-through;
   color: #9aa6b2;
+}
+
+.task-duration-marker {
+  margin-left: auto;
+  align-self: center;
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 11px;
+  background: var(--light-blue-soft);
+  color: #0a4f72;
+  border: 1px solid var(--light-blue);
+  border-radius: 999px;
+  font-family: "SF Mono", Menlo, Monaco, Consolas, "Courier New", monospace;
+  font-size: 12px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  animation: markerPop 0.25s ease-out;
+}
+
+@keyframes markerPop {
+  0%   { transform: scale(0.6); opacity: 0; }
+  60%  { transform: scale(1.08); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.task-list li.checked .task-duration-marker {
+  opacity: 1;
 }
 
 .notes-group textarea {

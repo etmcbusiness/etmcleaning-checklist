@@ -216,6 +216,17 @@
     return text || span.textContent.replace(/\s+/g, ' ').trim();
   }
 
+  function formatShortDuration(ms) {
+    if (!ms || ms < 0) ms = 0;
+    const totalSec = Math.floor(ms / 1000);
+    const h = Math.floor(totalSec / 3600);
+    const m = Math.floor((totalSec % 3600) / 60);
+    const s = totalSec % 60;
+    const pad = (n) => (n < 10 ? '0' + n : '' + n);
+    if (h > 0) return h + ':' + pad(m) + ':' + pad(s);
+    return m + ':' + pad(s);
+  }
+
   function readTaskTimings() {
     try {
       const raw = localStorage.getItem(taskTimingsKey);
@@ -227,16 +238,66 @@
     }
   }
 
+  function setTaskMarker(idx, durationMs) {
+    const cb = checkboxes[idx];
+    if (!cb) return;
+    const label = cb.closest('label');
+    if (!label) return;
+    let marker = label.querySelector('.task-duration-marker');
+    if (!marker) {
+      marker = document.createElement('span');
+      marker.className = 'task-duration-marker';
+      label.appendChild(marker);
+    }
+    marker.textContent = formatShortDuration(durationMs);
+  }
+
+  function removeTaskMarker(idx) {
+    const cb = checkboxes[idx];
+    if (!cb) return;
+    const label = cb.closest('label');
+    if (!label) return;
+    const marker = label.querySelector('.task-duration-marker');
+    if (marker) marker.remove();
+  }
+
+  function clearAllTaskMarkers() {
+    document.querySelectorAll('.task-duration-marker').forEach((el) => el.remove());
+  }
+
+  function restoreTaskMarkers() {
+    clearAllTaskMarkers();
+    const timings = readTaskTimings();
+    timings.forEach((t) => {
+      if (typeof t.durationMs === 'number') {
+        setTaskMarker(t.idx, t.durationMs);
+      }
+    });
+  }
+
   function recordTaskCheck(idx, isChecked) {
-    if (!hasSession() || isCompleted()) return;
+    if (!hasSession() || isCompleted()) {
+      removeTaskMarker(idx);
+      return;
+    }
     let timings = readTaskTimings().filter((t) => t.idx !== idx);
     if (isChecked) {
+      const elapsedMs = getElapsedMs();
+      const prevElapsedMs = timings.reduce(
+        (max, t) => (typeof t.elapsedMs === 'number' && t.elapsedMs > max ? t.elapsedMs : max),
+        0
+      );
+      const durationMs = Math.max(0, elapsedMs - prevElapsedMs);
       timings.push({
         idx: idx,
         text: getTaskText(checkboxes[idx]),
         optional: !!checkboxes[idx].closest('.task-group.optional'),
-        elapsedMs: getElapsedMs()
+        elapsedMs: elapsedMs,
+        durationMs: durationMs
       });
+      setTaskMarker(idx, durationMs);
+    } else {
+      removeTaskMarker(idx);
     }
     localStorage.setItem(taskTimingsKey, JSON.stringify(timings));
   }
@@ -269,6 +330,7 @@
     localStorage.removeItem(startedKey);
     localStorage.removeItem(accumulatedKey);
     localStorage.removeItem(taskTimingsKey);
+    clearAllTaskMarkers();
     banner.hidden = true;
     updateProgress();
     initTimer();
@@ -410,4 +472,5 @@
 
   loadState();
   updateProgress();
+  restoreTaskMarkers();
 })();
