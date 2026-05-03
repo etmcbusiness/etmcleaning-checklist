@@ -970,7 +970,7 @@
     }
   });
 
-  function appendLogEntry(completedAt) {
+  function appendLogEntry(completedAt, options) {
     const startedAt = Number(localStorage.getItem(startedKey)) || 0;
     const accumulated = Number(localStorage.getItem(accumulatedKey)) || 0;
     let elapsedMs;
@@ -987,18 +987,27 @@
     try {
       const raw = localStorage.getItem(logKey);
       if (raw) log = JSON.parse(raw) || [];
-    } catch (e) { log = []; }
+    } catch (e) {
+      log = [];
+    }
 
     const tasks = readTaskTimings()
       .slice()
       .sort((a, b) => (a.elapsedMs || 0) - (b.elapsedMs || 0));
 
-    log.push({
+    const entry = {
       sessionStart: sessionStart,
       completedAt: completedAt,
       elapsedMs: elapsedMs,
       tasks: tasks
-    });
+    };
+    if (options && options.notesForNext) {
+      entry.notesForNext = options.notesForNext;
+    }
+    if (options && options.notesCurrent) {
+      entry.notesCurrent = options.notesCurrent;
+    }
+    log.push(entry);
     localStorage.setItem(logKey, JSON.stringify(log));
   }
 
@@ -1012,22 +1021,30 @@
 
   function finalizeCompletion() {
     const now = Date.now();
+    let snapNotesNext = '';
+    let snapNotesCurrent = '';
+    notesEls.forEach((el) => {
+      if (el.dataset.noteKey === 'notes-next') snapNotesNext = el.value || '';
+      if (el.dataset.noteKey === 'notes-current') snapNotesCurrent = el.value || '';
+    });
+
     const summaryText = buildSessionSummaryBeforeLog(now);
-    appendLogEntry(now);
+    appendLogEntry(now, {
+      notesForNext: snapNotesNext.trim() || undefined,
+      notesCurrent: snapNotesCurrent.trim() || undefined
+    });
 
     function finishCleanupAndModal() {
       let carryNotes = '';
-      let currentNoteEl = null;
       notesEls.forEach((el) => {
         if (el.dataset.noteKey === 'notes-next') {
           carryNotes = el.value || '';
         }
-        if (el.dataset.noteKey === 'notes-current') {
-          currentNoteEl = el;
-        }
       });
 
-      checkboxes.forEach((cb) => { cb.checked = false; });
+      checkboxes.forEach((cb) => {
+        cb.checked = false;
+      });
       notesEls.forEach((el) => {
         el.value = '';
         localStorage.removeItem(noteStorageKey(el));
@@ -1039,8 +1056,12 @@
       localStorage.removeItem(taskTimingsKey);
       localStorage.removeItem(milestonesKey);
 
-      if (carryNotes.trim() && currentNoteEl) {
-        localStorage.setItem(noteStorageKey(currentNoteEl), carryNotes);
+      if (carryNotes.trim()) {
+        try {
+          localStorage.setItem(storageKey + ':notes-current', carryNotes);
+        } catch (e) {
+          /* ignore */
+        }
       }
 
       if (timerInterval) {

@@ -175,6 +175,36 @@
       .replace(/'/g, '&#39;');
   }
 
+  function formatNoteBody(text) {
+    if (!text) return '';
+    return escapeHtml(String(text)).replace(/\r\n|\r|\n/g, '<br />');
+  }
+
+  function buildNotesSection(entry) {
+    const cur = entry.notesCurrent && String(entry.notesCurrent).trim();
+    const next = entry.notesForNext && String(entry.notesForNext).trim();
+    if (!cur && !next) return '';
+    let html = '<div class="log-notes-wrap">';
+    if (cur) {
+      html +=
+        '<div class="log-notes-block">' +
+        '<h4 class="log-notes-title">Notes (this visit)</h4>' +
+        '<div class="log-notes-body">' +
+        formatNoteBody(cur) +
+        '</div></div>';
+    }
+    if (next) {
+      html +=
+        '<div class="log-notes-block">' +
+        '<h4 class="log-notes-title">Notes for next cleaning</h4>' +
+        '<div class="log-notes-body">' +
+        formatNoteBody(next) +
+        '</div></div>';
+    }
+    html += '</div>';
+    return html;
+  }
+
   function revokeGalleryUrls() {
     while (galleryObjectUrls.length) {
       const u = galleryObjectUrls.pop();
@@ -381,6 +411,7 @@
         '<button type="button" class="entry-btn edit-btn" data-action="edit">&#9998; Edit</button>' +
         '<button type="button" class="entry-btn delete-btn" data-action="delete">&#10005; Delete</button>' +
       '</div>' +
+      buildNotesSection(entry) +
       buildTaskBreakdownView(entry.tasks)
     );
   }
