@@ -27,8 +27,9 @@
     }
   }
 
-  // ---------- Sounds ----------
-  // Drop matching files into the /sounds folder; missing files are silently skipped.
+  // ---------- Sounds (Web Audio API) ----------
+  // HTMLMediaElement (<audio>) often pauses background music/podcasts on mobile; Web Audio
+  // short SFX typically mix as UI sounds. Requires user gesture for first playback (checkbox taps satisfy this).
   const SOUND_FILES = {
     task: 'sounds/task.mp3',
     milestone25: 'sounds/milestone-25.mp3',
@@ -36,51 +37,102 @@
     milestone75: 'sounds/milestone-75.mp3',
     milestone100: 'sounds/milestone-100.mp3'
   };
-  const sounds = {};
-  Object.keys(SOUND_FILES).forEach((k) => {
-    if (k === 'task') return;
-    try {
-      const a = new Audio(SOUND_FILES[k]);
-      a.preload = 'auto';
-      sounds[k] = a;
-    } catch (e) { /* ignore */ }
-  });
 
-  /** Several decoders so rapid checkmarks each get a audible tap (one shared Audio retiggers too fast). */
-  const TASK_SOUND_POOL_SIZE = 4;
-  const taskSoundPool = [];
-  (function initTaskSoundPool() {
-    const url = SOUND_FILES.task;
-    if (!url) return;
-    for (let i = 0; i < TASK_SOUND_POOL_SIZE; i++) {
-      try {
-        const a = new Audio(url);
-        a.preload = 'auto';
-        taskSoundPool.push(a);
-      } catch (e) { /* ignore */ }
+  const webAudio = {
+    ctx: null,
+    buffers: {},
+    decodePromise: null
+  };
+
+  function ensureAudioContext() {
+    if (webAudio.ctx) return webAudio.ctx;
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return null;
+    webAudio.ctx = new AC();
+    return webAudio.ctx;
+  }
+
+  function loadAllSoundBuffers() {
+    if (webAudio.decodePromise) return webAudio.decodePromise;
+    const ctx = ensureAudioContext();
+    if (!ctx) {
+      webAudio.decodePromise = Promise.resolve();
+      return webAudio.decodePromise;
     }
-  })();
-  let taskSoundPoolIndex = 0;
+    webAudio.decodePromise = Promise.all(
+      Object.keys(SOUND_FILES).map(async (key) => {
+        const url = SOUND_FILES[key];
+        try {
+          const res = await fetch(url);
+          if (!res.ok) return;
+          const raw = await res.arrayBuffer();
+          const buf = await ctx.decodeAudioData(raw.slice(0));
+          webAudio.buffers[key] = buf;
+        } catch (e) {
+          /* missing or undecodable file */
+        }
+      })
+    );
+    return webAudio.decodePromise;
+  }
+
+  loadAllSoundBuffers();
+
+  function primeAudioContextOnFirstGesture() {
+    const touchOpts = { passive: true, capture: true };
+    const clickOpts = { capture: true };
+    const onInteract = () => {
+      const ctx = ensureAudioContext();
+      if (ctx && ctx.state === 'suspended') {
+        ctx.resume().catch(() => {});
+      }
+      page.removeEventListener('touchstart', onInteract, touchOpts);
+      page.removeEventListener('click', onInteract, clickOpts);
+    };
+    page.addEventListener('touchstart', onInteract, touchOpts);
+    page.addEventListener('click', onInteract, clickOpts);
+  }
+  primeAudioContextOnFirstGesture();
+
+  function playBuffer(ctx, buffer) {
+    if (!buffer) return;
+    try {
+      const source = ctx.createBufferSource();
+      source.buffer = buffer;
+      const gain = ctx.createGain();
+      gain.gain.value = 1;
+      source.connect(gain);
+      gain.connect(ctx.destination);
+      source.start(0);
+    } catch (e) {
+      /* ignore */
+    }
+  }
 
   function playSound(name) {
-    if (name === 'task' && taskSoundPool.length) {
-      const s = taskSoundPool[taskSoundPoolIndex % taskSoundPool.length];
-      taskSoundPoolIndex++;
-      try {
-        s.pause();
-        s.currentTime = 0;
-        const p = s.play();
-        if (p && typeof p.catch === 'function') p.catch(() => { /* ignore */ });
-      } catch (e) { /* ignore */ }
+    if (!SOUND_FILES[name]) return;
+    const ctx = ensureAudioContext();
+    if (!ctx) return;
+    if (ctx.state === 'suspended') {
+      ctx.resume().catch(() => {});
+    }
+    const buf = webAudio.buffers[name];
+    if (buf) {
+      playBuffer(ctx, buf);
       return;
     }
-    const s = sounds[name];
-    if (!s) return;
-    try {
-      s.currentTime = 0;
-      const p = s.play();
-      if (p && typeof p.catch === 'function') p.catch(() => { /* ignore autoplay errors */ });
-    } catch (e) { /* ignore */ }
+    loadAllSoundBuffers().then(() => {
+      const c = webAudio.ctx;
+      const b = webAudio.buffers[name];
+      if (!c || !b) return;
+      if (c.state === 'suspended') {
+        c.resume()
+          .then(() => playBuffer(c, b))
+          .catch(() => playBuffer(c, b));
+      } else {
+        playBuffer(c, b);
+      }
+    });
   }
 
   // ---------- Milestones ----------
