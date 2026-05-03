@@ -1,13 +1,16 @@
 // ETMCLEANING Checklist — Service Worker
-// While developing: open any page with ?nosw=1 to unregister workers and avoid stale caches.
+// Local desktop dev (localhost / 127.0.0.1): app.js skips registration and unregisters so
+// edits load without stale precache — no need to bump CACHE_VERSION or push to test.
+// Opt in on localhost: ?sw=1   Opt out anywhere: ?nosw=1 (unregister only).
 // Bumps the version below to invalidate the cache and force users to get
 // the latest files on their next visit.
-const CACHE_VERSION = 'v57';
+const CACHE_VERSION = 'v59';
 const CACHE_NAME = 'etm-checklist-' + CACHE_VERSION;
 
 const PRECACHE_URLS = [
   './',
   './index.html',
+  './all-cleanings-log.html',
   './ramsey-rd.html',
   './ramsey-rd-checklist.html',
   './ramsey-rd-log.html',
@@ -34,6 +37,7 @@ const PRECACHE_URLS = [
   './backup-restore.js',
   './alarm-reveal.js',
   './log.js',
+  './master-log.js',
   './manifest.json',
   './icons/app-icon.png',
   './icons/icon-192.png',

@@ -82,8 +82,21 @@ if ('serviceWorker' in navigator) {
 
   window.addEventListener('load', () => {
     try {
-      const nosw = new URLSearchParams(window.location.search).get('nosw');
-      if (nosw === '1') {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('nosw') === '1') {
+        navigator.serviceWorker.getRegistrations().then((regs) => {
+          regs.forEach((reg) => reg.unregister());
+        });
+        return;
+      }
+
+      const hostname = window.location.hostname;
+      const isLocalDev =
+        hostname === 'localhost' ||
+        hostname === '127.0.0.1' ||
+        hostname === '[::1]';
+      const forceSw = params.get('sw') === '1';
+      if (isLocalDev && !forceSw) {
         navigator.serviceWorker.getRegistrations().then((regs) => {
           regs.forEach((reg) => reg.unregister());
         });
