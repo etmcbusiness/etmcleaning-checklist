@@ -5,13 +5,13 @@
   const LOG_SUFFIX = ':log';
 
   const LOCATION_LABELS = {
-    'checklist-ramsey-rd': 'Thrift at the Warehouse: Ramsey Rd Location',
-    'checklist-warehouse': 'Thrift at the Warehouse: Warehouse Location',
+    'checklist-ramsey-rd': 'Thrift at the Warehouse: Ramsey',
+    'checklist-warehouse': 'Thrift at the Warehouse: Warehouse',
     'checklist-capital-eye-care': 'Capital Eye Care',
     'checklist-belterra-eye-care': 'Belterra Eye Care',
     'checklist-the-commune': 'The Commune',
     'checklist-innerhouse': 'Innerhouse',
-    'checklist-mreyedr-congress': 'MrEyeDr (Congress) — Window Cleaning'
+    'checklist-mreyedr-congress': 'MrEyeDr: Congress'
   };
 
   function locationLabel(sourceKey) {

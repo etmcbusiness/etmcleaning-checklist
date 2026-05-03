@@ -16,7 +16,7 @@
   <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png" />
   <link rel="icon" type="image/png" sizes="512x512" href="icons/app-icon.png" />
   <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png" />
-  <link rel="stylesheet" href="styles.css?v=dashboard-cleaning-log" />
+  <link rel="stylesheet" href="styles.css?v=dashboard-tight-tiles" />
 </head>
 <body>
   <main class="home-main home-dashboard">
@@ -32,13 +32,13 @@
         A cleaning is in progress &mdash; tap it to continue. Finish or reset before starting one at another location.
       </p>
       <div class="location-list">
-        <a class="location-btn" href="ramsey-rd.html" data-storage-key="checklist-ramsey-rd">Thrift at the Warehouse: Ramsey Rd Location</a>
-        <a class="location-btn" href="warehouse.html" data-storage-key="checklist-warehouse">Thrift at the Warehouse: Warehouse Location</a>
-        <a class="location-btn" href="capital-eye-care.html" data-storage-key="checklist-capital-eye-care">Capital Eye Care</a>
-        <a class="location-btn" href="belterra-eye-care.html" data-storage-key="checklist-belterra-eye-care">Belterra Eye Care</a>
-        <a class="location-btn" href="the-commune.html" data-storage-key="checklist-the-commune">The Commune</a>
-        <a class="location-btn" href="innerhouse.html" data-storage-key="checklist-innerhouse">Innerhouse</a>
-        <a class="location-btn" href="mreyedr-congress.html" data-storage-key="checklist-mreyedr-congress">MrEyeDr (Congress) &mdash; Window Cleaning</a>
+        <a class="location-btn" href="ramsey-rd.html" data-storage-key="checklist-ramsey-rd" data-loc-tag="J"><span class="location-btn__title">Thrift at the Warehouse: Ramsey</span><span class="location-btn__last" aria-live="polite"></span></a>
+        <a class="location-btn" href="warehouse.html" data-storage-key="checklist-warehouse" data-loc-tag="J"><span class="location-btn__title">Thrift at the Warehouse: Warehouse</span><span class="location-btn__last" aria-live="polite"></span></a>
+        <a class="location-btn" href="capital-eye-care.html" data-storage-key="checklist-capital-eye-care" data-loc-tag="J"><span class="location-btn__title">Capital Eye Care</span><span class="location-btn__last" aria-live="polite"></span></a>
+        <a class="location-btn" href="belterra-eye-care.html" data-storage-key="checklist-belterra-eye-care" data-loc-tag="J"><span class="location-btn__title">Belterra Eye Care</span><span class="location-btn__last" aria-live="polite"></span></a>
+        <a class="location-btn" href="the-commune.html" data-storage-key="checklist-the-commune" data-loc-tag="J"><span class="location-btn__title">The Commune</span><span class="location-btn__last" aria-live="polite"></span></a>
+        <a class="location-btn" href="innerhouse.html" data-storage-key="checklist-innerhouse" data-loc-tag="J"><span class="location-btn__title">Innerhouse</span><span class="location-btn__last" aria-live="polite"></span></a>
+        <a class="location-btn" href="mreyedr-congress.html" data-storage-key="checklist-mreyedr-congress" data-loc-tag="W"><span class="location-btn__title">MrEyeDr: Congress</span><span class="location-btn__last" aria-live="polite"></span></a>
       </div>
     </section>
 
@@ -134,23 +134,62 @@
   </script>
   <script>
     (function () {
-      var buttons = document.querySelectorAll('.location-btn[data-storage-key]');
-      var hasActive = false;
-
-      buttons.forEach(function (btn) {
-        var key = btn.dataset.storageKey;
-        var startedAt = localStorage.getItem(key + ':startedAt');
-        var accumulated = localStorage.getItem(key + ':accumulatedMs');
-        var completed = localStorage.getItem(key + ':completedAt');
-        if ((startedAt || accumulated) && !completed) {
-          btn.classList.add('in-progress');
-          hasActive = true;
-        }
-      });
-
-      if (hasActive) {
-        document.getElementById('activeCleaningHint').hidden = false;
+      function formatLastCleanedDate(ts) {
+        if (!ts || ts <= 0) return null;
+        var d = new Date(ts);
+        if (isNaN(d.getTime())) return null;
+        return d.toLocaleDateString('en-US', {
+          month: 'numeric',
+          day: 'numeric',
+          year: '2-digit'
+        });
       }
+
+      function getLatestCompletedAt(storageKey) {
+        try {
+          var raw = localStorage.getItem(storageKey + ':log');
+          if (!raw) return null;
+          var arr = JSON.parse(raw);
+          if (!Array.isArray(arr) || arr.length === 0) return null;
+          var max = 0;
+          for (var i = 0; i < arr.length; i++) {
+            var ca = Number(arr[i].completedAt);
+            if (!isNaN(ca) && ca > max) max = ca;
+          }
+          return max > 0 ? max : null;
+        } catch (e) {
+          return null;
+        }
+      }
+
+      function applyLocationListState() {
+        var buttons = document.querySelectorAll('.location-list .location-btn[data-storage-key]');
+        var hasActive = false;
+        buttons.forEach(function (btn) {
+          btn.classList.remove('in-progress');
+          var key = btn.dataset.storageKey;
+          var startedAt = localStorage.getItem(key + ':startedAt');
+          var accumulated = localStorage.getItem(key + ':accumulatedMs');
+          var completed = localStorage.getItem(key + ':completedAt');
+          if ((startedAt || accumulated) && !completed) {
+            btn.classList.add('in-progress');
+            hasActive = true;
+          }
+
+          var lastEl = btn.querySelector('.location-btn__last');
+          if (lastEl) {
+            var ts = getLatestCompletedAt(key);
+            var dateStr = formatLastCleanedDate(ts);
+            lastEl.textContent = dateStr ? 'Last Cleaned ' + dateStr : 'Last Cleaned NA';
+          }
+        });
+
+        var hint = document.getElementById('activeCleaningHint');
+        if (hint) hint.hidden = !hasActive;
+      }
+
+      applyLocationListState();
+      window.addEventListener('pageshow', applyLocationListState);
     })();
   </script>
   <script>

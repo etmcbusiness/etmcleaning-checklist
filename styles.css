@@ -180,26 +180,62 @@ a {
 .location-list {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px 14px;
+  gap: 10px 12px;
 }
 
 .location-btn {
   display: block;
   width: 100%;
   min-width: 0;
-  padding: 16px 14px;
+  padding: 12px 12px;
   background: var(--white);
   color: var(--black);
   text-decoration: none;
   font-size: 15px;
   font-weight: 600;
   text-align: center;
-  line-height: 1.3;
+  line-height: 1.25;
   border: 2px solid var(--light-blue);
   border-radius: 12px;
   box-shadow: var(--shadow);
   transition: background 0.2s ease, color 0.2s ease, transform 0.15s ease,
     border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.location-list > a.location-btn[data-storage-key] {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  text-align: center;
+}
+
+.location-btn__title {
+  display: block;
+  max-width: 100%;
+  line-height: 1.25;
+}
+
+.location-btn__last {
+  display: block;
+  max-width: 100%;
+  font-size: 11px;
+  font-weight: 500;
+  color: #8a94a3;
+  line-height: 1.2;
+}
+
+.location-btn:hover .location-btn__last {
+  color: #6b7685;
+}
+
+.location-btn.in-progress .location-btn__last {
+  color: #9f7373;
+}
+
+.location-btn.in-progress:hover .location-btn__last {
+  color: #8f6363;
 }
 
 .location-btn:hover {
@@ -212,6 +248,30 @@ a {
 .location-btn:active {
   transform: translateY(0);
   background: var(--light-blue-strong);
+}
+
+/* Janitorial (J) / Window (W) — home location grid only */
+.location-list > a.location-btn[data-loc-tag] {
+  position: relative;
+  padding: 12px 12px 24px;
+}
+
+.location-list > a.location-btn[data-loc-tag]::after {
+  content: "(" attr(data-loc-tag) ")";
+  position: absolute;
+  right: 10px;
+  bottom: 5px;
+  font-size: 10px;
+  font-weight: 800;
+  font-family: inherit;
+  color: #5c6d7d;
+  letter-spacing: 0.04em;
+  line-height: 1;
+  pointer-events: none;
+}
+
+.location-btn.in-progress[data-loc-tag]::after {
+  color: #7f1d1d;
 }
 
 /* Active cleaning hint above the list */
@@ -2764,7 +2824,7 @@ label.btn-photo-add {
 .home-main.home-dashboard section.locations > .location-list {
   display: grid !important;
   grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-  gap: 12px 14px;
+  gap: 10px 12px;
   width: 100%;
   align-items: stretch;
 }
@@ -2801,11 +2861,22 @@ label.btn-photo-add {
     padding: 16px 16px 22px;
   }
   .location-btn {
-    padding: 14px 10px;
+    padding: 10px 8px;
     font-size: 14px;
     border-radius: 12px;
-    min-height: 52px;
-    line-height: 1.3;
+    line-height: 1.25;
+  }
+  .location-list > a.location-btn[data-loc-tag] {
+    padding: 10px 8px 20px;
+  }
+  .location-list > a.location-btn[data-loc-tag]::after {
+    right: 8px;
+    bottom: 4px;
+    font-size: 9px;
+  }
+  .location-btn__last {
+    font-size: 10px;
+    line-height: 1.2;
   }
 
   .location-list {
