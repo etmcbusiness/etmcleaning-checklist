@@ -218,6 +218,57 @@ a {
   border-color: #dc2626;
 }
 
+/* Secondary CTA on home (e.g. link to another app — see config.js) */
+.home-more-tools {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 0 24px 32px;
+  width: 100%;
+}
+
+.home-more-tools-title {
+  margin: 0 0 10px;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #6b7785;
+  text-align: center;
+}
+
+.home-more-tools-hint {
+  margin: 0 0 12px;
+  font-size: 13px;
+  color: #6b7785;
+  text-align: center;
+  line-height: 1.4;
+}
+
+.home-more-tools-hint code {
+  font-size: 12px;
+  background: #f0f4f8;
+  padding: 2px 6px;
+  border-radius: 6px;
+}
+
+.location-btn-secondary {
+  border-style: dashed;
+  border-color: var(--light-blue-strong);
+  background: var(--light-blue-soft);
+  color: #0a4f72;
+  font-weight: 700;
+}
+
+.location-btn-secondary:hover {
+  background: var(--light-blue);
+  border-style: solid;
+  color: var(--black);
+}
+
+.location-btn-secondary:active {
+  background: var(--light-blue-strong);
+}
+
 /* ---------- Home: Update App (opens sheet) ---------- */
 .backup-bar {
   flex-shrink: 0;

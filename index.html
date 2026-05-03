@@ -39,6 +39,17 @@
       </div>
     </section>
 
+    <section class="home-more-tools" id="homeMoreTools" hidden aria-label="More tools">
+      <h2 class="home-more-tools-title">More tools</h2>
+      <p class="home-more-tools-hint">Jump to your other app (link is set in <code>config.js</code>).</p>
+      <a
+        class="location-btn location-btn-secondary"
+        id="otherAppLink"
+        href="#"
+        hidden
+      >Other app</a>
+    </section>
+
     <section class="backup-bar" id="device-backup" aria-label="App update and backup">
       <button
         type="button"
@@ -93,8 +104,31 @@
     </div>
   </div>
 
+  <script src="config.js"></script>
   <script src="media-db.js"></script>
   <script src="backup-restore.js"></script>
+  <script>
+    (function () {
+      var c = window.ETM_DASHBOARD_LINK;
+      var wrap = document.getElementById('homeMoreTools');
+      var link = document.getElementById('otherAppLink');
+      var hint = wrap && wrap.querySelector('.home-more-tools-hint');
+      if (c && c.url && wrap && link) {
+        link.href = c.url;
+        link.hidden = false;
+        wrap.hidden = false;
+        if (c.label) link.textContent = c.label;
+        if (c.openInNewTab) {
+          link.target = '_blank';
+          link.rel = 'noopener noreferrer';
+        } else {
+          link.removeAttribute('target');
+          link.removeAttribute('rel');
+        }
+        if (hint) hint.hidden = true;
+      }
+    })();
+  </script>
   <script>
     (function () {
       var buttons = document.querySelectorAll('.location-btn[data-storage-key]');
