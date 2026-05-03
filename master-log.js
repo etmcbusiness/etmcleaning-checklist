@@ -5,20 +5,20 @@
   const LOG_SUFFIX = ':log';
 
   const LOCATION_LABELS = {
-    'checklist-ramsey-rd': 'Thrift at the Warehouse: Ramsey',
-    'checklist-warehouse': 'Thrift at the Warehouse: Warehouse',
-    'checklist-capital-eye-care': 'Capital Eye Care',
-    'checklist-belterra-eye-care': 'Belterra Eye Care',
-    'checklist-the-commune': 'The Commune',
-    'checklist-innerhouse': 'Innerhouse',
-    'checklist-tanuki-games': 'Tanuki Games (Janitorial)',
     'checklist-advanced-eye-care-surgery': 'Advanced Eye Care and Surgery',
-    'checklist-innovative-eye-care': 'Innovative Eye Care',
     'checklist-bastrop-family-eye-care': 'Bastrop Family Eye Care',
-    'checklist-tanuki-games-windows': 'Tanuki Games (Windows)',
+    'checklist-belterra-eye-care': 'Belterra Eye Care',
+    'checklist-capital-eye-care': 'Capital Eye Care',
+    'checklist-innerhouse': 'Innerhouse',
+    'checklist-innovative-eye-care': 'Innovative Eye Care',
     'checklist-lush-6th-st': 'Lush: 6th St',
     'checklist-lush-domain': 'Lush: Domain',
-    'checklist-mreyedr-congress': 'MrEyeDr: Congress'
+    'checklist-mreyedr-congress': 'MrEyeDr: Congress',
+    'checklist-tanuki-games': 'Tanuki Games (Janitorial)',
+    'checklist-tanuki-games-windows': 'Tanuki Games (Windows)',
+    'checklist-the-commune': 'The Commune',
+    'checklist-ramsey-rd': 'Thrift at the Warehouse: Ramsey',
+    'checklist-warehouse': 'Thrift at the Warehouse: Warehouse'
   };
 
   function locationLabel(sourceKey) {

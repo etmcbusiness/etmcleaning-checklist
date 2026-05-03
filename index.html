@@ -16,12 +16,19 @@
   <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png" />
   <link rel="icon" type="image/png" sizes="512x512" href="icons/app-icon.png" />
   <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png" />
-  <link rel="stylesheet" href="styles.css?v=dashboard-tight-tiles" />
+  <link rel="stylesheet" href="styles.css?v=home-sounds-corner" />
 </head>
 <body>
   <main class="home-main home-dashboard">
     <div class="home-dashboard-top">
       <a class="back-link home-dashboard-log-link" href="all-cleanings-log.html">Cleaning log</a>
+      <button
+        type="button"
+        class="btn-secondary home-sounds-toggle"
+        id="homeSoundsToggle"
+        aria-label="Toggle checklist tap sounds"
+        title="Checklist tap sounds when completing tasks"
+      >On</button>
     </div>
     <section class="hero">
       <h1>ETM Checklist<br /><span class="accent">Choose a location</span></h1>
@@ -31,21 +38,22 @@
       <p class="active-cleaning-hint" id="activeCleaningHint" hidden>
         A cleaning is in progress &mdash; tap it to continue. Finish or reset before starting one at another location.
       </p>
+      <!-- Tiles: 2 columns, row-major (left→right). Keep sorted A→Z by .location-btn__title when adding locations. -->
       <div class="location-list">
-        <a class="location-btn" href="ramsey-rd.html" data-storage-key="checklist-ramsey-rd" data-loc-tag="J"><span class="location-btn__title">Thrift at the Warehouse: Ramsey</span><span class="location-btn__last" aria-live="polite"></span></a>
-        <a class="location-btn" href="warehouse.html" data-storage-key="checklist-warehouse" data-loc-tag="J"><span class="location-btn__title">Thrift at the Warehouse: Warehouse</span><span class="location-btn__last" aria-live="polite"></span></a>
-        <a class="location-btn" href="capital-eye-care.html" data-storage-key="checklist-capital-eye-care" data-loc-tag="J"><span class="location-btn__title">Capital Eye Care</span><span class="location-btn__last" aria-live="polite"></span></a>
-        <a class="location-btn" href="belterra-eye-care.html" data-storage-key="checklist-belterra-eye-care" data-loc-tag="J"><span class="location-btn__title">Belterra Eye Care</span><span class="location-btn__last" aria-live="polite"></span></a>
-        <a class="location-btn" href="the-commune.html" data-storage-key="checklist-the-commune" data-loc-tag="J"><span class="location-btn__title">The Commune</span><span class="location-btn__last" aria-live="polite"></span></a>
-        <a class="location-btn" href="innerhouse.html" data-storage-key="checklist-innerhouse" data-loc-tag="J"><span class="location-btn__title">Innerhouse</span><span class="location-btn__last" aria-live="polite"></span></a>
-        <a class="location-btn" href="tanuki-games.html" data-storage-key="checklist-tanuki-games" data-loc-tag="J"><span class="location-btn__title">Tanuki Games (Janitorial)</span><span class="location-btn__last" aria-live="polite"></span></a>
         <a class="location-btn" href="advanced-eye-care-surgery.html" data-storage-key="checklist-advanced-eye-care-surgery" data-loc-tag="J"><span class="location-btn__title">Advanced Eye Care and Surgery</span><span class="location-btn__last" aria-live="polite"></span></a>
-        <a class="location-btn" href="innovative-eye-care.html" data-storage-key="checklist-innovative-eye-care" data-loc-tag="J"><span class="location-btn__title">Innovative Eye Care</span><span class="location-btn__last" aria-live="polite"></span></a>
         <a class="location-btn" href="bastrop-family-eye-care.html" data-storage-key="checklist-bastrop-family-eye-care" data-loc-tag="J"><span class="location-btn__title">Bastrop Family Eye Care</span><span class="location-btn__last" aria-live="polite"></span></a>
-        <a class="location-btn" href="tanuki-games-windows.html" data-storage-key="checklist-tanuki-games-windows" data-loc-tag="W"><span class="location-btn__title">Tanuki Games (Windows)</span><span class="location-btn__last" aria-live="polite"></span></a>
+        <a class="location-btn" href="belterra-eye-care.html" data-storage-key="checklist-belterra-eye-care" data-loc-tag="J"><span class="location-btn__title">Belterra Eye Care</span><span class="location-btn__last" aria-live="polite"></span></a>
+        <a class="location-btn" href="capital-eye-care.html" data-storage-key="checklist-capital-eye-care" data-loc-tag="J"><span class="location-btn__title">Capital Eye Care</span><span class="location-btn__last" aria-live="polite"></span></a>
+        <a class="location-btn" href="innerhouse.html" data-storage-key="checklist-innerhouse" data-loc-tag="J"><span class="location-btn__title">Innerhouse</span><span class="location-btn__last" aria-live="polite"></span></a>
+        <a class="location-btn" href="innovative-eye-care.html" data-storage-key="checklist-innovative-eye-care" data-loc-tag="J"><span class="location-btn__title">Innovative Eye Care</span><span class="location-btn__last" aria-live="polite"></span></a>
         <a class="location-btn" href="lush-6th-st.html" data-storage-key="checklist-lush-6th-st" data-loc-tag="W"><span class="location-btn__title">Lush: 6th St</span><span class="location-btn__last" aria-live="polite"></span></a>
         <a class="location-btn" href="lush-domain.html" data-storage-key="checklist-lush-domain" data-loc-tag="W"><span class="location-btn__title">Lush: Domain</span><span class="location-btn__last" aria-live="polite"></span></a>
         <a class="location-btn" href="mreyedr-congress.html" data-storage-key="checklist-mreyedr-congress" data-loc-tag="W"><span class="location-btn__title">MrEyeDr: Congress</span><span class="location-btn__last" aria-live="polite"></span></a>
+        <a class="location-btn" href="tanuki-games.html" data-storage-key="checklist-tanuki-games" data-loc-tag="J"><span class="location-btn__title">Tanuki Games (Janitorial)</span><span class="location-btn__last" aria-live="polite"></span></a>
+        <a class="location-btn" href="tanuki-games-windows.html" data-storage-key="checklist-tanuki-games-windows" data-loc-tag="W"><span class="location-btn__title">Tanuki Games (Windows)</span><span class="location-btn__last" aria-live="polite"></span></a>
+        <a class="location-btn" href="the-commune.html" data-storage-key="checklist-the-commune" data-loc-tag="J"><span class="location-btn__title">The Commune</span><span class="location-btn__last" aria-live="polite"></span></a>
+        <a class="location-btn" href="ramsey-rd.html" data-storage-key="checklist-ramsey-rd" data-loc-tag="J"><span class="location-btn__title">Thrift at the Warehouse: Ramsey</span><span class="location-btn__last" aria-live="polite"></span></a>
+        <a class="location-btn" href="warehouse.html" data-storage-key="checklist-warehouse" data-loc-tag="J"><span class="location-btn__title">Thrift at the Warehouse: Warehouse</span><span class="location-btn__last" aria-live="polite"></span></a>
       </div>
     </section>
 
@@ -137,6 +145,43 @@
         }
         if (hint) hint.hidden = true;
       }
+    })();
+  </script>
+  <script>
+    (function () {
+      var SOUNDS_PREF_KEY = 'etmChecklistSoundsEnabled';
+      function isAppleTouchDevice() {
+        return /iPad|iPhone|iPod/i.test(navigator.userAgent) ||
+          (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+      }
+      function soundsEnabled() {
+        try {
+          var v = localStorage.getItem(SOUNDS_PREF_KEY);
+          if (v === null) return !isAppleTouchDevice();
+          return v === '1';
+        } catch (e) {
+          return !isAppleTouchDevice();
+        }
+      }
+      function setSoundsEnabled(on) {
+        try {
+          localStorage.setItem(SOUNDS_PREF_KEY, on ? '1' : '0');
+        } catch (e) { /* ignore */ }
+      }
+      var btn = document.getElementById('homeSoundsToggle');
+      if (!btn) return;
+      function syncBtn() {
+        var on = soundsEnabled();
+        btn.textContent = on ? 'On' : 'Off';
+        btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+        btn.title = on ? 'Tap sounds on — click to turn off' : 'Tap sounds off — click to turn on';
+      }
+      syncBtn();
+      btn.addEventListener('click', function () {
+        setSoundsEnabled(!soundsEnabled());
+        syncBtn();
+      });
+      window.addEventListener('pageshow', syncBtn);
     })();
   </script>
   <script>

@@ -50,14 +50,6 @@
     }
   }
 
-  function setSoundsEnabled(on) {
-    try {
-      localStorage.setItem(SOUNDS_PREF_KEY, on ? '1' : '0');
-    } catch (e) {
-      /* ignore */
-    }
-  }
-
   function clearMediaSessionIfPossible() {
     try {
       if (!window.navigator || !window.navigator.mediaSession) return;
@@ -141,37 +133,6 @@
   } else {
     webAudio.decodePromise = Promise.resolve();
   }
-
-  (function injectSoundsToggle() {
-    const header = page.querySelector('.checklist-header');
-    if (!header) return;
-    const wrap = document.createElement('p');
-    wrap.className = 'checklist-sounds-pref';
-    const btn = document.createElement('button');
-    btn.type = 'button';
-    btn.className = 'btn-secondary checklist-sounds-toggle';
-    btn.setAttribute('aria-label', 'Toggle checklist tap sounds');
-    function syncBtn() {
-      const on = soundsEnabled();
-      btn.textContent = on ? 'Sounds: On' : 'Sounds: Off';
-      btn.setAttribute('aria-pressed', on ? 'true' : 'false');
-    }
-    syncBtn();
-    btn.addEventListener('click', () => {
-      setSoundsEnabled(!soundsEnabled());
-      syncBtn();
-      if (soundsEnabled()) {
-        webAudio.decodePromise = null;
-        loadAllSoundBuffers();
-        const c = ensureAudioContext();
-        if (c && c.state === 'suspended') {
-          c.resume().catch(() => {});
-        }
-      }
-    });
-    wrap.appendChild(btn);
-    header.appendChild(wrap);
-  })();
 
   function playBuffer(ctx, buffer) {
     if (!buffer) return;
@@ -729,10 +690,17 @@
       row.className = 'task-group-title-row';
       h2.replaceWith(row);
       row.appendChild(h2);
+      const meta = document.createElement('span');
+      meta.className = 'section-title-meta';
       const chip = document.createElement('span');
       chip.className = 'section-chip';
       chip.setAttribute('aria-label', 'Section progress');
-      row.appendChild(chip);
+      const timingWrap = document.createElement('span');
+      timingWrap.className = 'section-timing-wrap';
+      timingWrap.setAttribute('aria-label', 'Section timing');
+      meta.appendChild(chip);
+      meta.appendChild(timingWrap);
+      row.appendChild(meta);
     });
   }
 
@@ -744,6 +712,11 @@
       if (!boxes.length) {
         chip.textContent = '';
         chip.hidden = true;
+        const tw = section.querySelector('.section-timing-wrap');
+        if (tw) {
+          tw.innerHTML = '';
+          tw.hidden = true;
+        }
         return;
       }
       const done = boxes.filter((cb) => cb.checked).length;
@@ -829,8 +802,10 @@
     if (!lastEntry || !lastEntry.tasks || !currentTasks.length) return null;
     const prevByIdx = new Map();
     const prevByText = new Map();
+    const prevByGroup = new Map();
     lastEntry.tasks.forEach((t) => {
       if (typeof t.durationMs !== 'number') return;
+      if (t.timingGroup) prevByGroup.set(String(t.timingGroup), t.durationMs);
       if (t.idx != null) prevByIdx.set(Number(t.idx), t.durationMs);
       if (t.text) prevByText.set(normalizeTaskText(t.text), t.durationMs);
     });
@@ -838,8 +813,11 @@
     currentTasks.forEach((t) => {
       if (t.optional) return;
       let prevD = null;
-      if (t.idx != null && prevByIdx.has(Number(t.idx))) prevD = prevByIdx.get(Number(t.idx));
-      else if (t.text && prevByText.has(normalizeTaskText(t.text))) {
+      if (t.timingGroup && prevByGroup.has(String(t.timingGroup))) {
+        prevD = prevByGroup.get(String(t.timingGroup));
+      } else if (t.idx != null && prevByIdx.has(Number(t.idx))) {
+        prevD = prevByIdx.get(Number(t.idx));
+      } else if (t.text && prevByText.has(normalizeTaskText(t.text))) {
         prevD = prevByText.get(normalizeTaskText(t.text));
       }
       if (prevD == null) return;
@@ -916,15 +894,17 @@
       .sort((a, b) => (Number(b.completedAt) || 0) - (Number(a.completedAt) || 0));
     const byIdx = new Map();
     const byText = new Map();
+    const byGroup = new Map();
     if (log.length > 0) {
       log[0].tasks.forEach((t) => {
         const d = typeof t.durationMs === 'number' ? t.durationMs : null;
         if (d == null || d < 0) return;
+        if (t.timingGroup) byGroup.set(String(t.timingGroup), d);
         if (t.idx != null) byIdx.set(Number(t.idx), d);
         if (t.text) byText.set(normalizeTaskText(t.text), d);
       });
     }
-    previousDurationMapCache = { byIdx: byIdx, byText: byText };
+    previousDurationMapCache = { byIdx: byIdx, byText: byText, byGroup: byGroup };
     return previousDurationMapCache;
   }
 
@@ -932,128 +912,151 @@
     previousDurationMapCache = null;
   }
 
-  function getPrevDurationMsForIdx(idx) {
-    const cb = checkboxes[idx];
-    if (!cb) return null;
+  function getTimedTaskSections() {
+    return Array.from(
+      page.querySelectorAll('.task-group:not(.notes-group):not(.photo-upload-group)')
+    ).filter((sec) => sec.querySelector('.task-list input[type="checkbox"]'));
+  }
+
+  function getSectionTimingId(section) {
+    const custom = (section && section.dataset && section.dataset.timingSection || '').trim();
+    if (custom) return custom;
+    const list = getTimedTaskSections();
+    const i = list.indexOf(section);
+    return i >= 0 ? 'sec-' + i : null;
+  }
+
+  function getSectionTaskCheckboxes(section) {
+    if (!section) return [];
+    return Array.from(section.querySelectorAll('.task-list input[type="checkbox"]'));
+  }
+
+  function sectionFullyChecked(section) {
+    const boxes = getSectionTaskCheckboxes(section);
+    return boxes.length > 0 && boxes.every((cb) => cb.checked);
+  }
+
+  function maxTimingElapsedMs(timings) {
+    return timings.reduce(
+      (max, t) => (typeof t.elapsedMs === 'number' && t.elapsedMs > max ? t.elapsedMs : max),
+      0
+    );
+  }
+
+  function stripTaskRowTimingClusters() {
+    page.querySelectorAll('label .task-timing-cluster').forEach((el) => el.remove());
+  }
+
+  function findTimingEntryForSectionId(sid) {
+    return readTaskTimings().find((x) => String(x.timingGroup) === String(sid));
+  }
+
+  function getPrevDurationForSectionId(sid) {
     const maps = getPreviousDurationMaps();
-    if (maps.byIdx.has(idx)) return maps.byIdx.get(idx);
-    const text = normalizeTaskText(getTaskText(cb));
-    if (text && maps.byText.has(text)) return maps.byText.get(text);
+    if (maps.byGroup && maps.byGroup.has(String(sid))) {
+      return maps.byGroup.get(String(sid));
+    }
     return null;
   }
 
-  function getCurrentSessionDurationForIdx(idx) {
-    const t = readTaskTimings().find((x) => Number(x.idx) === Number(idx));
-    if (!t || typeof t.durationMs !== 'number') return null;
-    return t.durationMs;
-  }
-
-  function removeTimingClusterFromLabel(label) {
-    const cluster = label.querySelector('.task-timing-cluster');
-    if (cluster) cluster.remove();
-    const orphan = label.querySelector('.task-duration-marker');
-    if (orphan) orphan.remove();
-  }
-
-  function ensureTimingCluster(label) {
-    let cluster = label.querySelector('.task-timing-cluster');
-    if (!cluster) {
-      cluster = document.createElement('span');
-      cluster.className = 'task-timing-cluster';
-      const prev = document.createElement('span');
-      prev.className = 'task-duration-prev';
-      prev.setAttribute('hidden', '');
-      const cur = document.createElement('span');
-      cur.className = 'task-duration-marker';
-      cluster.appendChild(prev);
-      cluster.appendChild(cur);
-      label.appendChild(cluster);
+  function updateSectionTimingWrap(section) {
+    const wrap = section.querySelector('.section-timing-wrap');
+    if (!wrap) return;
+    const sid = getSectionTimingId(section);
+    if (!sid) {
+      wrap.innerHTML = '';
+      wrap.hidden = true;
+      return;
     }
-    return {
-      cluster: cluster,
-      prevEl: cluster.querySelector('.task-duration-prev'),
-      curEl: cluster.querySelector('.task-duration-marker')
-    };
-  }
-
-  function updateTaskTimingUi(idx) {
-    const cb = checkboxes[idx];
-    if (!cb) return;
-    const label = cb.closest('label');
-    if (!label) return;
-
-    const prevMs = getPrevDurationMsForIdx(idx);
-    const curMs = getCurrentSessionDurationForIdx(idx);
+    const entry = findTimingEntryForSectionId(sid);
+    const curMs = entry && typeof entry.durationMs === 'number' ? entry.durationMs : null;
+    const prevMs = getPrevDurationForSectionId(sid);
 
     if (prevMs == null && curMs == null) {
-      removeTimingClusterFromLabel(label);
+      wrap.innerHTML = '';
+      wrap.hidden = true;
       return;
     }
 
-    const existingCluster = label.querySelector('.task-timing-cluster');
-    if (!existingCluster) {
-      const oldMarker = label.querySelector('.task-duration-marker');
-      if (oldMarker) oldMarker.remove();
-    }
-
-    const timing = ensureTimingCluster(label);
-
+    wrap.hidden = false;
+    let html = '';
     if (prevMs != null) {
-      timing.prevEl.innerHTML =
+      html +=
+        '<span class="task-duration-prev section-duration-prev" title="Time for this section on the last completed cleaning">' +
         '<span class="task-duration-prev-label">Previous</span>' +
-        '<span class="task-duration-prev-time">' + formatShortDuration(prevMs) + '</span>';
-      timing.prevEl.removeAttribute('hidden');
-      timing.prevEl.title = 'Time for this task on the last completed cleaning';
-    } else {
-      timing.prevEl.innerHTML = '';
-      timing.prevEl.setAttribute('hidden', '');
-      timing.prevEl.removeAttribute('title');
+        '<span class="task-duration-prev-time">' + formatShortDuration(prevMs) + '</span>' +
+        '</span>';
     }
-
     if (curMs != null) {
-      timing.curEl.textContent = formatShortDuration(curMs);
-      timing.curEl.removeAttribute('hidden');
-    } else {
-      timing.curEl.textContent = '';
-      timing.curEl.setAttribute('hidden', '');
+      html +=
+        '<span class="task-duration-marker section-duration-current">' +
+        formatShortDuration(curMs) +
+        '</span>';
     }
+    wrap.innerHTML = html;
   }
 
-  function rebuildAllTaskTimingUi() {
+  function rebuildAllSectionTimingUi() {
     invalidatePreviousDurationCache();
-    checkboxes.forEach((_, idx) => {
-      updateTaskTimingUi(idx);
-    });
+    stripTaskRowTimingClusters();
+    getTimedTaskSections().forEach((sec) => updateSectionTimingWrap(sec));
   }
 
   function recordTaskCheck(idx, isChecked) {
     if (isCompleted()) {
-      updateTaskTimingUi(idx);
+      rebuildAllSectionTimingUi();
       return;
     }
     if (!hasSession()) {
-      updateTaskTimingUi(idx);
+      rebuildAllSectionTimingUi();
       return;
     }
 
-    let timings = readTaskTimings().filter((t) => t.idx !== idx);
-    if (isChecked) {
-      const elapsedMs = getElapsedMs();
-      const prevElapsedMs = timings.reduce(
-        (max, t) => (typeof t.elapsedMs === 'number' && t.elapsedMs > max ? t.elapsedMs : max),
-        0
-      );
-      const durationMs = Math.max(0, elapsedMs - prevElapsedMs);
-      timings.push({
-        idx: idx,
-        text: getTaskText(checkboxes[idx]),
-        optional: !!checkboxes[idx].closest('.task-group.optional'),
-        elapsedMs: elapsedMs,
-        durationMs: durationMs
-      });
+    const cb = checkboxes[idx];
+    const section = cb.closest('.task-group');
+    if (!section || section.classList.contains('notes-group') || section.classList.contains('photo-upload-group')) {
+      return;
     }
+    const boxes = getSectionTaskCheckboxes(section);
+    if (!boxes.length) return;
+
+    const sid = getSectionTimingId(section);
+    if (!sid) return;
+
+    let timings = readTaskTimings();
+
+    if (!isChecked) {
+      timings = timings.filter((t) => String(t.timingGroup) !== String(sid));
+      localStorage.setItem(taskTimingsKey, JSON.stringify(timings));
+      rebuildAllSectionTimingUi();
+      return;
+    }
+
+    timings = timings.filter((t) => String(t.timingGroup) !== String(sid));
+    if (!sectionFullyChecked(section)) {
+      localStorage.setItem(taskTimingsKey, JSON.stringify(timings));
+      rebuildAllSectionTimingUi();
+      return;
+    }
+
+    const memberIdxs = boxes
+      .map((c) => checkboxes.indexOf(c))
+      .filter((i) => i >= 0)
+      .sort((a, b) => a - b);
+    const elapsedMs = getElapsedMs();
+    const prevElapsedMs = maxTimingElapsedMs(timings);
+    const durationMs = Math.max(0, elapsedMs - prevElapsedMs);
+    timings.push({
+      timingGroup: sid,
+      idx: memberIdxs[0],
+      groupMemberIdxs: memberIdxs,
+      text: getSectionHeadingText(section),
+      optional: !!section.classList.contains('optional'),
+      elapsedMs: elapsedMs,
+      durationMs: durationMs
+    });
     localStorage.setItem(taskTimingsKey, JSON.stringify(timings));
-    updateTaskTimingUi(idx);
+    rebuildAllSectionTimingUi();
   }
 
   checkboxes.forEach((cb, idx) => {
@@ -1105,7 +1108,7 @@
     banner.hidden = true;
     updateProgress();
     initTimer();
-    rebuildAllTaskTimingUi();
+    rebuildAllSectionTimingUi();
     updateTimerAvgHint();
     if (window.EtmMediaDB) {
       window.EtmMediaDB.clearDraft(storageKey).then(() => refreshPhotosUi()).catch(() => refreshPhotosUi());
@@ -1299,7 +1302,7 @@
   });
 
   function refreshTaskMarkerPreviousTimes() {
-    rebuildAllTaskTimingUi();
+    rebuildAllSectionTimingUi();
   }
   window.addEventListener('focus', refreshTaskMarkerPreviousTimes);
   document.addEventListener('visibilitychange', () => {
@@ -1309,6 +1312,6 @@
   loadState();
   initSectionTitleRows();
   updateProgress();
-  rebuildAllTaskTimingUi();
+  rebuildAllSectionTimingUi();
   refreshPhotosUi();
 })();
