@@ -77,6 +77,12 @@
   });
   document.addEventListener('keydown', (e) => {
     if (e.key !== 'Escape') return;
+    const logNotesEl = document.getElementById('logNotesModal');
+    if (logNotesEl && logNotesEl.classList.contains('is-open')) {
+      e.preventDefault();
+      closeLogNotesModal();
+      return;
+    }
     if (galleryBackdrop && galleryBackdrop.classList.contains('is-open')) {
       e.preventDefault();
       closeGallery();
@@ -205,6 +211,12 @@
     return html;
   }
 
+  function entryHasNotes(entry) {
+    const cur = entry.notesCurrent && String(entry.notesCurrent).trim();
+    const next = entry.notesForNext && String(entry.notesForNext).trim();
+    return !!(cur || next);
+  }
+
   function revokeGalleryUrls() {
     while (galleryObjectUrls.length) {
       const u = galleryObjectUrls.pop();
@@ -259,6 +271,49 @@
       galleryBackdrop.setAttribute('aria-hidden', 'false');
       showGallerySlide();
     });
+  }
+
+  let logNotesModalEl = null;
+  function closeLogNotesModal() {
+    if (!logNotesModalEl) return;
+    logNotesModalEl.classList.remove('is-open');
+    logNotesModalEl.setAttribute('aria-hidden', 'true');
+    document.body.style.overflow = '';
+  }
+
+  function ensureLogNotesModal() {
+    if (logNotesModalEl) return logNotesModalEl;
+    const wrap = document.createElement('div');
+    wrap.id = 'logNotesModal';
+    wrap.className = 'modal-backdrop';
+    wrap.setAttribute('aria-hidden', 'true');
+    wrap.innerHTML =
+      '<div class="modal log-notes-sheet" role="dialog" aria-modal="true" aria-labelledby="logNotesModalTitle">' +
+      '<h2 id="logNotesModalTitle" class="log-notes-modal-title">Cleaning notes</h2>' +
+      '<div class="log-notes-modal-body" id="logNotesModalBody"></div>' +
+      '<div class="modal-actions modal-actions-single">' +
+      '<button type="button" class="modal-btn modal-primary-solid" id="logNotesModalClose">Close</button>' +
+      '</div></div>';
+    document.body.appendChild(wrap);
+    logNotesModalEl = wrap;
+    wrap.querySelector('#logNotesModalClose').addEventListener('click', closeLogNotesModal);
+    wrap.addEventListener('click', (ev) => {
+      if (ev.target === wrap) closeLogNotesModal();
+    });
+    return wrap;
+  }
+
+  function openLogNotesModal(entry) {
+    ensureLogNotesModal();
+    const titleEl = document.getElementById('logNotesModalTitle');
+    const bodyEl = document.getElementById('logNotesModalBody');
+    if (!titleEl || !bodyEl) return;
+    titleEl.textContent = 'Notes — ' + formatDate(entry.completedAt);
+    const inner = buildNotesSection(entry);
+    bodyEl.innerHTML = inner || '<p class="log-notes-modal-empty">No notes were saved for this visit.</p>';
+    logNotesModalEl.classList.add('is-open');
+    logNotesModalEl.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
   }
 
   function renderEditMediaThumbs(form) {
@@ -571,6 +626,11 @@
               '<button type="button" class="log-gallery-btn" data-completed-at="' + id + '" hidden>View all</button>' +
             '</div>' +
           '</div>' +
+        '</td>' +
+        '<td data-label="Notes" class="td-log-notes">' +
+          (entryHasNotes(entry)
+            ? '<button type="button" class="log-notes-btn" data-log-notes-id="' + id + '">View notes</button>'
+            : '<span class="log-notes-none">\u2014</span>') +
         '</td>';
       tbody.appendChild(tr);
 
@@ -579,7 +639,7 @@
       detailsTr.hidden = !isExpanded;
       detailsTr.dataset.id = id;
       const detailsCell = document.createElement('td');
-      detailsCell.colSpan = 4;
+      detailsCell.colSpan = 5;
       detailsCell.innerHTML = isEditing
         ? buildEditForm(entry)
         : buildViewBody(entry);
@@ -592,6 +652,16 @@
 
   // ---------- Event delegation ----------
   tbody.addEventListener('click', (e) => {
+    const notesBtn = e.target.closest('.log-notes-btn');
+    if (notesBtn) {
+      e.preventDefault();
+      e.stopPropagation();
+      const nid = Number(notesBtn.dataset.logNotesId);
+      const ent = readLog().find((row) => Number(row.completedAt) === nid);
+      if (ent) openLogNotesModal(ent);
+      return;
+    }
+
     const galBtn = e.target.closest('.log-gallery-btn');
     if (galBtn) {
       e.preventDefault();
