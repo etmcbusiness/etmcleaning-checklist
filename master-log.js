@@ -213,6 +213,40 @@
     });
   }
 
+  /** Week is Monday–Sunday in local time; range is that week's Mon 00:00:00–Sun 23:59:59.999. */
+  function startOfWeekMondayMs(d) {
+    const day = d.getDay();
+    const daysFromMonday = day === 0 ? 6 : day - 1;
+    const mon = new Date(d.getFullYear(), d.getMonth(), d.getDate() - daysFromMonday, 0, 0, 0, 0);
+    return mon.getTime();
+  }
+
+  function endOfWeekSundayMs(d) {
+    const start = startOfWeekMondayMs(d);
+    const sun = new Date(start);
+    sun.setDate(sun.getDate() + 6);
+    sun.setHours(23, 59, 59, 999);
+    return sun.getTime();
+  }
+
+  function startOfCalendarMonthMs(d) {
+    return new Date(d.getFullYear(), d.getMonth(), 1, 0, 0, 0, 0).getTime();
+  }
+
+  function endOfCalendarMonthMs(d) {
+    return new Date(d.getFullYear(), d.getMonth() + 1, 0, 23, 59, 59, 999).getTime();
+  }
+
+  function sumElapsedCompletedInRange(entries, rangeStartMs, rangeEndMs) {
+    return entries.reduce((sum, e) => {
+      const ca = Number(e.completedAt) || 0;
+      if (ca >= rangeStartMs && ca <= rangeEndMs) {
+        return sum + (Number(e.elapsedMs) || 0);
+      }
+      return sum;
+    }, 0);
+  }
+
   function toDatetimeLocal(ts) {
     const d = new Date(ts);
     return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) +
@@ -654,10 +688,18 @@
 
     const totalMs = log.reduce((sum, e) => sum + (e.elapsedMs || 0), 0);
     const avgMs = totalMs / log.length;
+    const now = new Date();
+    const monthStartMs = startOfCalendarMonthMs(now);
+    const monthEndMs = endOfCalendarMonthMs(now);
+    const weekStartMs = startOfWeekMondayMs(now);
+    const weekEndMs = endOfWeekSundayMs(now);
+    const totalMonthMs = sumElapsedCompletedInRange(log, monthStartMs, monthEndMs);
+    const totalWeekMs = sumElapsedCompletedInRange(log, weekStartMs, weekEndMs);
     summaryEl.innerHTML =
       '<div class="summary-tile summary-tile-master summary-tile-master-cleanings"><span class="summary-num">' + log.length + '</span><span class="summary-label">Total Cleanings</span></div>' +
       '<div class="summary-tile summary-tile-master summary-tile-master-avg"><span class="summary-num">' + formatElapsed(avgMs) + '</span><span class="summary-label">Average Time</span></div>' +
-      '<div class="summary-tile summary-tile-master summary-tile-master-total"><span class="summary-num">' + formatElapsed(totalMs) + '</span><span class="summary-label">Total time spent cleaning</span></div>';
+      '<div class="summary-tile summary-tile-master summary-tile-master-month"><span class="summary-num">' + formatElapsed(totalMonthMs) + '</span><span class="summary-label">Total time this month</span></div>' +
+      '<div class="summary-tile summary-tile-master summary-tile-master-week"><span class="summary-num">' + formatElapsed(totalWeekMs) + '</span><span class="summary-label">Total time this week</span></div>';
 
     const sorted = log.slice();
     tbody.innerHTML = '';

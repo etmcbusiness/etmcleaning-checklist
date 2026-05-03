@@ -1667,6 +1667,9 @@ a {
     margin-bottom: 14px;
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+  section.log-page[data-master-log="true"] .summary-tile-master-cleanings {
+    grid-column: 1 / -1;
+  }
   section.log-page[data-master-log="true"] .summary-tile-master-avg {
     display: none !important;
   }
