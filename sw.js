@@ -4,7 +4,7 @@
 // Opt in on localhost: ?sw=1   Opt out anywhere: ?nosw=1 (unregister only).
 // Bumps the version below to invalidate the cache and force users to get
 // the latest files on their next visit.
-const CACHE_VERSION = 'v71';
+const CACHE_VERSION = 'v72';
 const CACHE_NAME = 'etm-checklist-' + CACHE_VERSION;
 
 const PRECACHE_URLS = [
@@ -26,6 +26,27 @@ const PRECACHE_URLS = [
   './innerhouse.html',
   './innerhouse-checklist.html',
   './innerhouse-log.html',
+  './tanuki-games.html',
+  './tanuki-games-checklist.html',
+  './tanuki-games-log.html',
+  './advanced-eye-care-surgery.html',
+  './advanced-eye-care-surgery-checklist.html',
+  './advanced-eye-care-surgery-log.html',
+  './innovative-eye-care.html',
+  './innovative-eye-care-checklist.html',
+  './innovative-eye-care-log.html',
+  './bastrop-family-eye-care.html',
+  './bastrop-family-eye-care-checklist.html',
+  './bastrop-family-eye-care-log.html',
+  './tanuki-games-windows.html',
+  './tanuki-games-windows-checklist.html',
+  './tanuki-games-windows-log.html',
+  './lush-6th-st.html',
+  './lush-6th-st-checklist.html',
+  './lush-6th-st-log.html',
+  './lush-domain.html',
+  './lush-domain-checklist.html',
+  './lush-domain-log.html',
   './mreyedr-congress.html',
   './mreyedr-congress-checklist.html',
   './mreyedr-congress-log.html',
