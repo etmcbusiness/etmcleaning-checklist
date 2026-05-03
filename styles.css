@@ -2674,6 +2674,19 @@ label.btn-photo-add {
   color: #ffffff;
 }
 
+/* Home dashboard: force two columns (overrides stale cache / extensions) */
+.home-main.home-dashboard section.locations > .location-list {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 12px 14px;
+  width: 100%;
+  align-items: stretch;
+}
+
+.home-main.home-dashboard section.locations > .location-list > .location-btn {
+  box-sizing: border-box;
+}
+
 /* ---------- Responsive ---------- */
 @media (max-width: 700px) {
   /* Hero */
@@ -2707,6 +2720,10 @@ label.btn-photo-add {
   }
 
   .location-list {
+    gap: 10px 12px;
+  }
+
+  .home-main.home-dashboard section.locations > .location-list {
     gap: 10px 12px;
   }
 
