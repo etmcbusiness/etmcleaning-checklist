@@ -28,8 +28,48 @@
   }
 
   // ---------- Sounds (Web Audio API) ----------
-  // HTMLMediaElement (<audio>) often pauses background music/podcasts on mobile; Web Audio
-  // short SFX typically mix as UI sounds. Requires user gesture for first playback (checkbox taps satisfy this).
+  // iOS often still assigns Now Playing to the PWA when any audio plays, which pauses
+  // podcasts/music and can make lock-screen / Dynamic Island targets confusing. We clear
+  // Media Session after each blip, default sounds OFF on iPhone/iPad (enable with toggle).
+  const SOUNDS_PREF_KEY = 'etmChecklistSoundsEnabled';
+
+  function isAppleTouchDevice() {
+    return /iPad|iPhone|iPod/i.test(navigator.userAgent) ||
+      (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  }
+
+  function soundsEnabled() {
+    try {
+      const v = localStorage.getItem(SOUNDS_PREF_KEY);
+      if (v === null) {
+        return !isAppleTouchDevice();
+      }
+      return v === '1';
+    } catch (e) {
+      return !isAppleTouchDevice();
+    }
+  }
+
+  function setSoundsEnabled(on) {
+    try {
+      localStorage.setItem(SOUNDS_PREF_KEY, on ? '1' : '0');
+    } catch (e) {
+      /* ignore */
+    }
+  }
+
+  function clearMediaSessionIfPossible() {
+    try {
+      if (!window.navigator || !window.navigator.mediaSession) return;
+      navigator.mediaSession.playbackState = 'none';
+      navigator.mediaSession.metadata = null;
+    } catch (e) {
+      /* ignore */
+    }
+  }
+
+  clearMediaSessionIfPossible();
+
   const SOUND_FILES = {
     task: 'sounds/task.mp3',
     milestone25: 'sounds/milestone-25.mp3',
@@ -53,6 +93,10 @@
   }
 
   function loadAllSoundBuffers() {
+    if (!soundsEnabled()) {
+      webAudio.decodePromise = Promise.resolve();
+      return webAudio.decodePromise;
+    }
     if (webAudio.decodePromise) return webAudio.decodePromise;
     const ctx = ensureAudioContext();
     if (!ctx) {
@@ -76,8 +120,6 @@
     return webAudio.decodePromise;
   }
 
-  loadAllSoundBuffers();
-
   function primeAudioContextOnFirstGesture() {
     const touchOpts = { passive: true, capture: true };
     const clickOpts = { capture: true };
@@ -92,7 +134,44 @@
     page.addEventListener('touchstart', onInteract, touchOpts);
     page.addEventListener('click', onInteract, clickOpts);
   }
-  primeAudioContextOnFirstGesture();
+
+  if (soundsEnabled()) {
+    loadAllSoundBuffers();
+    primeAudioContextOnFirstGesture();
+  } else {
+    webAudio.decodePromise = Promise.resolve();
+  }
+
+  (function injectSoundsToggle() {
+    const header = page.querySelector('.checklist-header');
+    if (!header) return;
+    const wrap = document.createElement('p');
+    wrap.className = 'checklist-sounds-pref';
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'btn-secondary checklist-sounds-toggle';
+    btn.setAttribute('aria-label', 'Toggle checklist tap sounds');
+    function syncBtn() {
+      const on = soundsEnabled();
+      btn.textContent = on ? 'Sounds: On' : 'Sounds: Off';
+      btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+    }
+    syncBtn();
+    btn.addEventListener('click', () => {
+      setSoundsEnabled(!soundsEnabled());
+      syncBtn();
+      if (soundsEnabled()) {
+        webAudio.decodePromise = null;
+        loadAllSoundBuffers();
+        const c = ensureAudioContext();
+        if (c && c.state === 'suspended') {
+          c.resume().catch(() => {});
+        }
+      }
+    });
+    wrap.appendChild(btn);
+    header.appendChild(wrap);
+  })();
 
   function playBuffer(ctx, buffer) {
     if (!buffer) return;
@@ -103,7 +182,12 @@
       gain.gain.value = 1;
       source.connect(gain);
       gain.connect(ctx.destination);
+      source.onended = () => {
+        clearMediaSessionIfPossible();
+      };
       source.start(0);
+      const ms = Math.min(8000, Math.max(120, (buffer.duration || 0.4) * 1000 + 80));
+      window.setTimeout(clearMediaSessionIfPossible, ms);
     } catch (e) {
       /* ignore */
     }
@@ -111,6 +195,12 @@
 
   function playSound(name) {
     if (!SOUND_FILES[name]) return;
+    if (!soundsEnabled()) {
+      if (typeof navigator.vibrate === 'function') {
+        navigator.vibrate(10);
+      }
+      return;
+    }
     const ctx = ensureAudioContext();
     if (!ctx) return;
     if (ctx.state === 'suspended') {

@@ -1740,6 +1740,18 @@ a {
   font-weight: 500;
 }
 
+.checklist-sounds-pref {
+  margin: 14px 0 0;
+  display: flex;
+  justify-content: center;
+}
+
+.checklist-sounds-toggle {
+  font-size: 13px;
+  padding: 8px 16px;
+  min-height: 0;
+}
+
 .progress-wrap {
   background: var(--white);
   border: 1px solid var(--border);
