@@ -655,9 +655,9 @@
     const totalMs = log.reduce((sum, e) => sum + (e.elapsedMs || 0), 0);
     const avgMs = totalMs / log.length;
     summaryEl.innerHTML =
-      '<div class="summary-tile"><span class="summary-num">' + log.length + '</span><span class="summary-label">Total Cleanings</span></div>' +
-      '<div class="summary-tile"><span class="summary-num">' + formatElapsed(avgMs) + '</span><span class="summary-label">Average Time</span></div>' +
-      '<div class="summary-tile"><span class="summary-num">' + formatElapsed(totalMs) + '</span><span class="summary-label">Total Time</span></div>';
+      '<div class="summary-tile summary-tile-master summary-tile-master-cleanings"><span class="summary-num">' + log.length + '</span><span class="summary-label">Total Cleanings</span></div>' +
+      '<div class="summary-tile summary-tile-master summary-tile-master-avg"><span class="summary-num">' + formatElapsed(avgMs) + '</span><span class="summary-label">Average Time</span></div>' +
+      '<div class="summary-tile summary-tile-master summary-tile-master-total"><span class="summary-num">' + formatElapsed(totalMs) + '</span><span class="summary-label">Total time spent cleaning</span></div>';
 
     const sorted = log.slice();
     tbody.innerHTML = '';
@@ -674,11 +674,12 @@
       tr.dataset.sourceKey = sk;
       tr.dataset.completedAt = String(id);
       tr.dataset.rowKey = rk;
+      const sessionRange =
+        formatTime(entry.sessionStart) + ' \u2013 ' + formatTime(entry.completedAt);
       tr.innerHTML =
         '<td data-label="Location">' + escapeHtml(locationLabel(sk)) + '</td>' +
         '<td data-label="Date">' + formatDate(entry.completedAt) + '</td>' +
-        '<td data-label="Started">' + formatTime(entry.sessionStart) + '</td>' +
-        '<td data-label="Ended">' + formatTime(entry.completedAt) + '</td>' +
+        '<td data-label="Started – Ended">' + sessionRange + '</td>' +
         '<td data-label="Duration" class="td-duration-stack">' +
           '<div class="duration-stack">' +
             '<span class="duration-cell">' +
@@ -706,7 +707,7 @@
       detailsTr.dataset.completedAt = String(id);
       detailsTr.dataset.rowKey = rk;
       const detailsCell = document.createElement('td');
-      detailsCell.colSpan = 6;
+      detailsCell.colSpan = 5;
       detailsCell.innerHTML = isEditing
         ? buildEditForm(entry)
         : buildViewBody(entry);
