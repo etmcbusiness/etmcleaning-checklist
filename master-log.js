@@ -439,11 +439,14 @@
     sorted.forEach((entry) => {
       const eid = Number(entry.completedAt);
       const sk = entry._sourceStorageKey;
-      const sel =
+      const rk = rowKey(sk, eid);
+      if (editingId === rk) return;
+      if (!expandedIds.has(rk)) return;
+      const selCount =
         '.log-media-count[data-source-key="' + sk + '"][data-log-media-at="' + eid + '"]';
       const selBtn =
         '.log-gallery-btn[data-source-key="' + sk + '"][data-completed-at="' + eid + '"]';
-      const countEl = tbody.querySelector(sel);
+      const countEl = tbody.querySelector(selCount);
       const btn = tbody.querySelector(selBtn);
       if (!countEl || !btn) return;
       window.EtmMediaDB.loadLogPhotos(sk, eid).then((photos) => {
@@ -551,11 +554,20 @@
   }
 
   function buildViewBody(entry) {
+    const sk = entry._sourceStorageKey || '';
+    const id = Number(entry.completedAt) || 0;
+    const photosRow =
+      '<div class="log-media-inline log-media-inline-detail" role="group" aria-label="Photos and videos">' +
+        '<span class="log-media-label">Photos</span>' +
+        '<span class="log-media-count" data-source-key="' + escapeHtml(sk) + '" data-log-media-at="' + id + '">\u2014</span>' +
+        '<button type="button" class="log-gallery-btn" data-source-key="' + escapeHtml(sk) + '" data-completed-at="' + id + '" hidden>View photos</button>' +
+      '</div>';
     return (
       '<div class="entry-actions">' +
         '<button type="button" class="entry-btn edit-btn" data-action="edit">&#9998; Edit</button>' +
         '<button type="button" class="entry-btn delete-btn" data-action="delete">&#10005; Delete</button>' +
       '</div>' +
+      photosRow +
       buildNotesSection(entry) +
       buildTaskBreakdownView(entry.tasks)
     );
@@ -728,11 +740,6 @@
               '<span class="duration-pill">' + formatElapsed(entry.elapsedMs) + '</span>' +
               '<span class="expand-arrow" aria-hidden="true">&#9656;</span>' +
             '</span>' +
-            '<div class="log-media-inline">' +
-              '<span class="log-media-label">Photos</span>' +
-              '<span class="log-media-count" data-source-key="' + escapeHtml(sk) + '" data-log-media-at="' + id + '">\u2014</span>' +
-              '<button type="button" class="log-gallery-btn" data-source-key="' + escapeHtml(sk) + '" data-completed-at="' + id + '" hidden>View all</button>' +
-            '</div>' +
           '</div>' +
         '</td>' +
         '<td data-label="Notes" class="td-log-notes">' +

@@ -1018,6 +1018,14 @@ a {
   font-size: 13px;
 }
 
+.log-media-inline-detail {
+  padding: 4px 18px 12px;
+}
+
+.log-details .log-gallery-btn {
+  margin-left: 4px;
+}
+
 .log-media-label {
   font-weight: 700;
   color: #6b7785;
@@ -1703,9 +1711,6 @@ a {
   section.log-page[data-master-log="true"] .log-table tr.log-row .duration-pill {
     font-size: 12px;
     padding: 3px 10px;
-  }
-  section.log-page[data-master-log="true"] .log-table tr.log-row .log-media-inline {
-    font-size: 12px;
   }
 }
 
