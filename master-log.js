@@ -14,6 +14,7 @@
     'checklist-lush-6th-st': 'Lush: 6th St',
     'checklist-lush-domain': 'Lush: Domain',
     'checklist-mreyedr-congress': 'MrEyeDr: Congress',
+    'checklist-mreyedr-hutto': 'MrEyeDr: Hutto (Janitorial)',
     'checklist-tanuki-games': 'Tanuki Games (Janitorial)',
     'checklist-tanuki-games-windows': 'Tanuki Games (Windows)',
     'checklist-the-commune': 'The Commune',
