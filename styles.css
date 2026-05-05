@@ -2493,15 +2493,19 @@ a.calendar-day-schedule-row:focus-visible {
     font-size: 10px;
     letter-spacing: 1.2px;
   }
-  section.log-page[data-master-log="true"] .log-table tr.log-row {
+  /* Master cleaning log + work log: same compact card rows on phone */
+  section.log-page[data-master-log="true"] .log-table tr.log-row,
+  section.log-page[data-work-log="true"] .log-table tr.work-log-row {
     padding: 3px 2px;
   }
-  section.log-page[data-master-log="true"] .log-table tr.log-row > td {
+  section.log-page[data-master-log="true"] .log-table tr.log-row > td,
+  section.log-page[data-work-log="true"] .log-table tr.work-log-row > td {
     padding: 3px 12px;
     font-size: 14px;
     line-height: 1.3;
   }
-  section.log-page[data-master-log="true"] .log-table tr.log-row > td::before {
+  section.log-page[data-master-log="true"] .log-table tr.log-row > td::before,
+  section.log-page[data-work-log="true"] .log-table tr.work-log-row > td::before {
     font-size: 10px;
     letter-spacing: 1px;
     padding-right: 8px;
@@ -2509,12 +2513,17 @@ a.calendar-day-schedule-row:focus-visible {
   section.log-page[data-master-log="true"] .log-table tr.log-row > td.td-log-notes {
     display: none !important;
   }
-  section.log-page[data-master-log="true"] .log-table tr.log-row .duration-pill {
+  section.log-page[data-master-log="true"] .log-table tr.log-row .duration-pill,
+  section.log-page[data-work-log="true"] .log-table tr.work-log-row .duration-pill {
     font-size: 12px;
     padding: 3px 10px;
   }
+  section.log-page[data-work-log="true"] .log-table tr.work-log-row > td.td-duration-stack .duration-stack {
+    align-items: flex-start;
+    width: 100%;
+  }
 
-  /* Work log (mileage): compact phone layout like master cleaning log */
+  /* Work log summary: same grid rhythm as all-locations cleaning log */
   section.log-page[data-work-log="true"] .log-summary {
     gap: 8px;
     margin-bottom: 14px;
@@ -2536,23 +2545,6 @@ a.calendar-day-schedule-row:focus-visible {
   section.log-page[data-work-log="true"] .summary-label {
     font-size: 10px;
     letter-spacing: 1.2px;
-  }
-  section.log-page[data-work-log="true"] .log-table tr.work-log-row {
-    padding: 3px 2px;
-  }
-  section.log-page[data-work-log="true"] .log-table tr.work-log-row > td {
-    padding: 3px 12px;
-    font-size: 14px;
-    line-height: 1.3;
-  }
-  section.log-page[data-work-log="true"] .log-table tr.work-log-row > td::before {
-    font-size: 10px;
-    letter-spacing: 1px;
-    padding-right: 8px;
-  }
-  section.log-page[data-work-log="true"] .log-table tr.work-log-row .duration-pill {
-    font-size: 12px;
-    padding: 3px 10px;
   }
   section.log-page[data-work-log="true"] .work-log-col-odo-start,
   section.log-page[data-work-log="true"] .work-log-col-odo-end {

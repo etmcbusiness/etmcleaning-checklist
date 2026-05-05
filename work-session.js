@@ -521,13 +521,20 @@
         var tr = document.createElement('tr');
         tr.className = 'log-row work-log-row';
         tr.innerHTML =
-          '<td data-label="Date">' + formatDate(entry.endedAt) + '</td>' +
-          '<td data-label="Time">' + formatTime(entry.startedAt) + ' – ' + formatTime(entry.endedAt) + '</td>' +
-          '<td data-label="Duration"><span class="duration-pill">' + formatElapsed(entry.elapsedMs) + '</span></td>' +
+          '<td class="work-log-col-date" data-label="Date">' + formatDate(entry.endedAt) + '</td>' +
+          '<td class="work-log-col-started" data-label="Started">' + formatTime(entry.startedAt) + '</td>' +
+          '<td class="work-log-col-ended" data-label="Ended">' + formatTime(entry.endedAt) + '</td>' +
+          '<td data-label="Duration" class="td-duration-stack">' +
+          '<div class="duration-stack">' +
+          '<span class="duration-cell">' +
+          '<span class="duration-pill">' + formatElapsed(entry.elapsedMs) + '</span>' +
+          '</span>' +
+          '</div>' +
+          '</td>' +
           '<td class="work-log-col-odo-start" data-label="Start mi">' + String(entry.startMileage) + '</td>' +
           '<td class="work-log-col-odo-end" data-label="End mi">' + String(entry.endMileage) + '</td>' +
           '<td class="work-log-col-miles-delta" data-label="Miles">' + String(entry.milesDriven) + '</td>' +
-          '<td class="work-log-actions-cell" data-label=""><button type="button" class="entry-btn work-log-edit-btn" data-entry-id="' +
+          '<td class="work-log-actions-cell" data-label=""><button type="button" class="log-notes-btn work-log-edit-btn" data-entry-id="' +
           String(rowId) +
           '">Edit</button></td>';
         tbody.appendChild(tr);
