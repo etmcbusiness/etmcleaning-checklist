@@ -16,19 +16,29 @@
   <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png" />
   <link rel="icon" type="image/png" sizes="512x512" href="icons/app-icon.png" />
   <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png" />
-  <link rel="stylesheet" href="styles.css?v=home-sounds-corner" />
+  <link rel="stylesheet" href="styles.css?v=home-nav-stack-7" />
 </head>
 <body>
   <main class="home-main home-dashboard">
     <div class="home-dashboard-top">
-      <a class="back-link home-dashboard-log-link" href="all-cleanings-log.html">Cleaning log</a>
-      <button
-        type="button"
-        class="btn-secondary home-sounds-toggle"
-        id="homeSoundsToggle"
-        aria-label="Toggle checklist tap sounds"
-        title="Checklist tap sounds when completing tasks"
-      >On</button>
+      <p class="home-nav-eyebrow">Logs &amp; schedule</p>
+      <div class="home-dashboard-nav-stack">
+        <a class="back-link home-dashboard-log-link" href="all-cleanings-log.html">Cleaning log</a>
+        <a class="back-link home-dashboard-log-link" href="work-log.html">Work log</a>
+        <a class="back-link home-dashboard-log-link" href="cleaning-calendar.html">Cleaning calendar</a>
+      </div>
+      <section class="work-session-card" id="workSessionCard" aria-label="Work session timer and mileage">
+        <h2 class="work-session-title">Work Session</h2>
+        <div class="work-session-stats">
+          <p class="work-session-stat"><span>Timer</span><strong id="workSessionTimer">00:00:00</strong></p>
+          <p class="work-session-stat"><span>Mileage</span><strong id="workSessionMileage">Not started</strong></p>
+        </div>
+        <p class="work-session-status" id="workSessionStatus">Enter starting mileage to begin.</p>
+        <div class="work-session-actions">
+          <button type="button" class="btn-primary" id="startWorkBtn">Start Work</button>
+          <button type="button" class="btn-secondary" id="endWorkBtn" disabled>End Work</button>
+        </div>
+      </section>
     </div>
     <section class="hero">
       <h1>ETM Checklist<br /><span class="accent">Choose a location</span></h1>
@@ -49,9 +59,9 @@
         <a class="location-btn" href="lush-6th-st.html" data-storage-key="checklist-lush-6th-st" data-loc-tag="W"><span class="location-btn__title">Lush: 6th St</span><span class="location-btn__last" aria-live="polite"></span></a>
         <a class="location-btn" href="lush-domain.html" data-storage-key="checklist-lush-domain" data-loc-tag="W"><span class="location-btn__title">Lush: Domain</span><span class="location-btn__last" aria-live="polite"></span></a>
         <a class="location-btn" href="mreyedr-congress.html" data-storage-key="checklist-mreyedr-congress" data-loc-tag="W"><span class="location-btn__title">MrEyeDr: Congress</span><span class="location-btn__last" aria-live="polite"></span></a>
-        <a class="location-btn" href="mreyedr-hutto.html" data-storage-key="checklist-mreyedr-hutto" data-loc-tag="J"><span class="location-btn__title">MrEyeDr: Hutto (Janitorial)</span><span class="location-btn__last" aria-live="polite"></span></a>
-        <a class="location-btn" href="tanuki-games.html" data-storage-key="checklist-tanuki-games" data-loc-tag="J"><span class="location-btn__title">Tanuki Games (Janitorial)</span><span class="location-btn__last" aria-live="polite"></span></a>
-        <a class="location-btn" href="tanuki-games-windows.html" data-storage-key="checklist-tanuki-games-windows" data-loc-tag="W"><span class="location-btn__title">Tanuki Games (Windows)</span><span class="location-btn__last" aria-live="polite"></span></a>
+        <a class="location-btn" href="mreyedr-hutto.html" data-storage-key="checklist-mreyedr-hutto" data-loc-tag="J"><span class="location-btn__title">MrEyeDr: Hutto</span><span class="location-btn__last" aria-live="polite"></span></a>
+        <a class="location-btn" href="tanuki-games.html" data-storage-key="checklist-tanuki-games" data-loc-tag="J"><span class="location-btn__title">Tanuki Games</span><span class="location-btn__last" aria-live="polite"></span></a>
+        <a class="location-btn" href="tanuki-games-windows.html" data-storage-key="checklist-tanuki-games-windows" data-loc-tag="W"><span class="location-btn__title">Tanuki Games</span><span class="location-btn__last" aria-live="polite"></span></a>
         <a class="location-btn" href="the-commune.html" data-storage-key="checklist-the-commune" data-loc-tag="J"><span class="location-btn__title">The Commune</span><span class="location-btn__last" aria-live="polite"></span></a>
         <a class="location-btn" href="ramsey-rd.html" data-storage-key="checklist-ramsey-rd" data-loc-tag="J"><span class="location-btn__title">Thrift at the Warehouse: Ramsey</span><span class="location-btn__last" aria-live="polite"></span></a>
         <a class="location-btn" href="warehouse.html" data-storage-key="checklist-warehouse" data-loc-tag="J"><span class="location-btn__title">Thrift at the Warehouse: Warehouse</span><span class="location-btn__last" aria-live="polite"></span></a>
@@ -80,6 +90,13 @@
       >
         Update App
       </button>
+      <button
+        type="button"
+        class="btn-secondary home-sounds-toggle"
+        id="homeSoundsToggle"
+        aria-label="Toggle checklist tap sounds"
+        title="Checklist tap sounds when completing tasks"
+      >On</button>
     </section>
   </main>
 
@@ -191,11 +208,14 @@
         if (!ts || ts <= 0) return null;
         var d = new Date(ts);
         if (isNaN(d.getTime())) return null;
-        return d.toLocaleDateString('en-US', {
+        var dateText = d.toLocaleDateString('en-US', {
           month: 'numeric',
           day: 'numeric',
           year: '2-digit'
         });
+        var dayCodes = ['Su', 'M', 'T', 'W', 'Th', 'F', 'S'];
+        var dayCode = dayCodes[d.getDay()] || '';
+        return dateText + ' (' + dayCode + ')';
       }
 
       function getLatestCompletedAt(storageKey) {
@@ -373,6 +393,7 @@
       });
     })();
   </script>
+  <script src="work-session.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

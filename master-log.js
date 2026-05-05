@@ -14,9 +14,9 @@
     'checklist-lush-6th-st': 'Lush: 6th St',
     'checklist-lush-domain': 'Lush: Domain',
     'checklist-mreyedr-congress': 'MrEyeDr: Congress',
-    'checklist-mreyedr-hutto': 'MrEyeDr: Hutto (Janitorial)',
-    'checklist-tanuki-games': 'Tanuki Games (Janitorial)',
-    'checklist-tanuki-games-windows': 'Tanuki Games (Windows)',
+    'checklist-mreyedr-hutto': 'MrEyeDr: Hutto',
+    'checklist-tanuki-games': 'Tanuki Games',
+    'checklist-tanuki-games-windows': 'Tanuki Games',
     'checklist-the-commune': 'The Commune',
     'checklist-ramsey-rd': 'Thrift at the Warehouse: Ramsey',
     'checklist-warehouse': 'Thrift at the Warehouse: Warehouse'
@@ -649,7 +649,13 @@
     const oldCa = id;
     const newCa = Number(newEnd);
 
-    log[idx] = stripMeta(Object.assign({}, entry, {
+    const nextLog = log.filter(
+      (e, j) => j === idx || Number(e.completedAt) !== newCa
+    );
+    const newIdx = nextLog.findIndex((e) => Number(e.completedAt) === oldCa);
+    if (newIdx === -1) return;
+
+    nextLog[newIdx] = stripMeta(Object.assign({}, entry, {
       sessionStart: newStart,
       completedAt: newEnd,
       elapsedMs: Math.max(0, newEnd - newStart),
@@ -661,7 +667,7 @@
     expandedIds.delete(oldKey);
     expandedIds.add(rowKey(sourceKey, newCa));
 
-    writeLogToSource(sourceKey, log);
+    writeLogToSource(sourceKey, nextLog);
 
     const mediaDone = () => {
       editingMediaItems = null;

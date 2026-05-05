@@ -84,6 +84,23 @@
     return webAudio.ctx;
   }
 
+  async function decodeSoundKey(key) {
+    if (webAudio.buffers[key]) return;
+    const url = SOUND_FILES[key];
+    if (!url) return;
+    const ctx = ensureAudioContext();
+    if (!ctx) return;
+    try {
+      const res = await fetch(url);
+      if (!res.ok) return;
+      const raw = await res.arrayBuffer();
+      const buf = await ctx.decodeAudioData(raw.slice(0));
+      webAudio.buffers[key] = buf;
+    } catch (e) {
+      /* missing or undecodable file */
+    }
+  }
+
   function loadAllSoundBuffers() {
     if (!soundsEnabled()) {
       webAudio.decodePromise = Promise.resolve();
@@ -95,36 +112,35 @@
       webAudio.decodePromise = Promise.resolve();
       return webAudio.decodePromise;
     }
-    webAudio.decodePromise = Promise.all(
-      Object.keys(SOUND_FILES).map(async (key) => {
-        const url = SOUND_FILES[key];
-        try {
-          const res = await fetch(url);
-          if (!res.ok) return;
-          const raw = await res.arrayBuffer();
-          const buf = await ctx.decodeAudioData(raw.slice(0));
-          webAudio.buffers[key] = buf;
-        } catch (e) {
-          /* missing or undecodable file */
-        }
-      })
-    );
+    // Decode task tap sound first so the common path is ready ASAP; milestones load in parallel after.
+    const restKeys = Object.keys(SOUND_FILES).filter(function (k) { return k !== 'task'; });
+    webAudio.decodePromise = (async function () {
+      await decodeSoundKey('task');
+      await Promise.all(restKeys.map(function (k) { return decodeSoundKey(k); }));
+    })();
     return webAudio.decodePromise;
   }
 
+  function resumeContextIfNeeded(ctx) {
+    if (!ctx) return Promise.resolve();
+    if (ctx.state === 'suspended') {
+      return ctx.resume().catch(function () {}).then(function () {});
+    }
+    return Promise.resolve();
+  }
+
   function primeAudioContextOnFirstGesture() {
-    const touchOpts = { passive: true, capture: true };
-    const clickOpts = { capture: true };
-    const onInteract = () => {
+    const opts = { passive: true, capture: true };
+    const onInteract = function () {
       const ctx = ensureAudioContext();
       if (ctx && ctx.state === 'suspended') {
-        ctx.resume().catch(() => {});
+        ctx.resume().catch(function () {});
       }
-      page.removeEventListener('touchstart', onInteract, touchOpts);
-      page.removeEventListener('click', onInteract, clickOpts);
+      document.removeEventListener('pointerdown', onInteract, opts);
+      document.removeEventListener('touchstart', onInteract, opts);
     };
-    page.addEventListener('touchstart', onInteract, touchOpts);
-    page.addEventListener('click', onInteract, clickOpts);
+    document.addEventListener('pointerdown', onInteract, opts);
+    document.addEventListener('touchstart', onInteract, opts);
   }
 
   if (soundsEnabled()) {
@@ -164,26 +180,21 @@
     }
     const ctx = ensureAudioContext();
     if (!ctx) return;
-    if (ctx.state === 'suspended') {
-      ctx.resume().catch(() => {});
+
+    function startPlayback() {
+      const buf = webAudio.buffers[name];
+      if (buf) playBuffer(ctx, buf);
     }
-    const buf = webAudio.buffers[name];
-    if (buf) {
-      playBuffer(ctx, buf);
+
+    function afterDecode() {
+      resumeContextIfNeeded(ctx).then(startPlayback);
+    }
+
+    if (webAudio.buffers[name]) {
+      afterDecode();
       return;
     }
-    loadAllSoundBuffers().then(() => {
-      const c = webAudio.ctx;
-      const b = webAudio.buffers[name];
-      if (!c || !b) return;
-      if (c.state === 'suspended') {
-        c.resume()
-          .then(() => playBuffer(c, b))
-          .catch(() => playBuffer(c, b));
-      } else {
-        playBuffer(c, b);
-      }
-    });
+    loadAllSoundBuffers().then(afterDecode);
   }
 
   // ---------- Milestones ----------

@@ -536,7 +536,13 @@
     const oldCa = Number(id);
     const newCa = Number(newEnd);
 
-    log[idx] = Object.assign({}, entry, {
+    const nextLog = log.filter(
+      (e, j) => j === idx || Number(e.completedAt) !== newCa
+    );
+    const newIdx = nextLog.findIndex((e) => Number(e.completedAt) === oldCa);
+    if (newIdx === -1) return;
+
+    nextLog[newIdx] = Object.assign({}, entry, {
       sessionStart: newStart,
       completedAt: newEnd,
       elapsedMs: Math.max(0, newEnd - newStart),
@@ -547,7 +553,7 @@
     expandedIds.delete(id);
     expandedIds.add(newCa);
 
-    writeLog(log);
+    writeLog(nextLog);
 
     const mediaDone = () => {
       editingMediaItems = null;
