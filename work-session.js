@@ -30,47 +30,36 @@
     });
   }
 
-  function toDateInputValue(ts) {
+  function toDatetimeLocal(ts) {
     var d = new Date(Number(ts) || 0);
     if (isNaN(d.getTime())) return '';
-    return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+    return (
+      d.getFullYear() +
+      '-' +
+      pad(d.getMonth() + 1) +
+      '-' +
+      pad(d.getDate()) +
+      'T' +
+      pad(d.getHours()) +
+      ':' +
+      pad(d.getMinutes()) +
+      ':' +
+      pad(d.getSeconds())
+    );
   }
 
-  function applyDateKeepingLocalTime(prevEndMs, yyyymmdd) {
-    var old = new Date(Number(prevEndMs) || 0);
-    if (isNaN(old.getTime())) return Number(prevEndMs) || 0;
-    var parts = String(yyyymmdd || '').split('-');
-    if (parts.length !== 3) return old.getTime();
-    var y = parseInt(parts[0], 10);
-    var mo = parseInt(parts[1], 10) - 1;
-    var day = parseInt(parts[2], 10);
-    if (isNaN(y) || isNaN(mo) || isNaN(day)) return old.getTime();
-    var next = new Date(old.getTime());
-    next.setFullYear(y, mo, day);
-    return next.getTime();
+  function escapeHtml(str) {
+    return String(str || '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
   }
 
-  function parseDurationStr(str) {
-    if (str == null) return NaN;
-    var t = String(str).trim();
-    if (!t) return NaN;
-    var parts = t.split(':');
-    if (parts.length === 1) {
-      var n = parseInt(parts[0], 10);
-      return isNaN(n) ? NaN : Math.max(0, n) * 1000;
-    }
-    if (parts.length === 2) {
-      var m = Math.max(0, parseInt(parts[0], 10) || 0);
-      var s = Math.max(0, parseInt(parts[1], 10) || 0);
-      return (m * 60 + s) * 1000;
-    }
-    if (parts.length === 3) {
-      var h = Math.max(0, parseInt(parts[0], 10) || 0);
-      var m2 = Math.max(0, parseInt(parts[1], 10) || 0);
-      var s2 = Math.max(0, parseInt(parts[2], 10) || 0);
-      return (h * 3600 + m2 * 60 + s2) * 1000;
-    }
-    return NaN;
+  function workLogRowKey(entry) {
+    if (entry && entry.id != null && entry.id !== undefined) return Number(entry.id);
+    return Number(entry.endedAt);
   }
 
   function findWorkLogEntryIndex(log, entryId) {
@@ -312,152 +301,130 @@
     var summaryEl = document.getElementById('workLogSummary');
     if (!tbody || !tableWrap || !emptyEl || !clearBtn) return;
 
-    var editModalEl = null;
-    var workLogEditEntryId = null;
+    var editingId = null;
+    var expandedIds = new Set();
 
-    function ensureEditModal() {
-      if (editModalEl) return;
-      editModalEl = document.createElement('div');
-      editModalEl.className = 'modal-backdrop';
-      editModalEl.setAttribute('aria-hidden', 'true');
-      editModalEl.innerHTML =
-        '<div class="modal work-log-edit-modal" role="dialog" aria-modal="true" aria-labelledby="workLogEditTitle">' +
-        '<h2 id="workLogEditTitle">Edit work session</h2>' +
-        '<div class="work-log-edit-fields">' +
-        '<div class="work-log-edit-field"><label for="workLogEditDate">Session date</label>' +
-        '<input type="date" id="workLogEditDate" /></div>' +
-        '<div class="work-log-edit-field"><label for="workLogEditDuration">Duration</label>' +
-        '<input type="text" id="workLogEditDuration" inputmode="text" autocomplete="off" placeholder="H:MM:SS" />' +
-        '<p class="work-log-edit-hint">Clock time of day stays the same; start time is derived from end time minus duration. Use H:MM:SS or M:SS.</p></div>' +
-        '<div class="work-log-edit-field"><label for="workLogEditStartMileage">Start mileage</label>' +
-        '<input type="number" id="workLogEditStartMileage" min="0" step="0.1" inputmode="decimal" /></div>' +
-        '<div class="work-log-edit-field"><label for="workLogEditEndMileage">End mileage</label>' +
-        '<input type="number" id="workLogEditEndMileage" min="0" step="0.1" inputmode="decimal" /></div>' +
-        '<p class="work-log-edit-mile-preview" id="workLogEditMilesPreview"></p>' +
+    function buildWorkLogViewBody(entry) {
+      var sm = entry.startMileage != null ? String(entry.startMileage) : '—';
+      var em = entry.endMileage != null ? String(entry.endMileage) : '—';
+      var md =
+        entry.milesDriven != null ? String(entry.milesDriven) : '—';
+      return (
+        '<div class="entry-actions">' +
+        '<button type="button" class="entry-btn edit-btn" data-action="edit">&#9998; Edit</button>' +
+        '<button type="button" class="entry-btn delete-btn" data-action="delete">&#10005; Delete</button>' +
         '</div>' +
-        '<div class="modal-actions">' +
-        '<button type="button" class="modal-btn modal-yes" id="workLogEditCancel">Cancel</button>' +
-        '<button type="button" class="modal-btn modal-no" id="workLogEditSave">Save</button>' +
-        '</div></div>';
-
-      document.body.appendChild(editModalEl);
-
-      var dateInp = editModalEl.querySelector('#workLogEditDate');
-      var durInp = editModalEl.querySelector('#workLogEditDuration');
-      var startInp = editModalEl.querySelector('#workLogEditStartMileage');
-      var endInp = editModalEl.querySelector('#workLogEditEndMileage');
-      var milesPrev = editModalEl.querySelector('#workLogEditMilesPreview');
-      var cancelBtn = editModalEl.querySelector('#workLogEditCancel');
-      var saveBtn = editModalEl.querySelector('#workLogEditSave');
-
-      function closeEditModal() {
-        editModalEl.classList.remove('is-open');
-        editModalEl.setAttribute('aria-hidden', 'true');
-        document.body.style.overflow = '';
-        workLogEditEntryId = null;
-      }
-
-      function updateMilesPreview() {
-        var a = parseFloat(String(startInp.value).trim());
-        var b = parseFloat(String(endInp.value).trim());
-        if (!isFinite(a) || !isFinite(b)) {
-          milesPrev.textContent = '';
-          return;
-        }
-        var diff = Math.round((b - a) * 100) / 100;
-        milesPrev.textContent = 'Miles driven: ' + String(diff);
-      }
-
-      startInp.addEventListener('input', updateMilesPreview);
-      endInp.addEventListener('input', updateMilesPreview);
-
-      cancelBtn.addEventListener('click', closeEditModal);
-      editModalEl.addEventListener('click', function (e) {
-        if (e.target === editModalEl) closeEditModal();
-      });
-
-      saveBtn.addEventListener('click', function () {
-        if (workLogEditEntryId == null) return;
-        var log = readLog();
-        var idx = findWorkLogEntryIndex(log, workLogEditEntryId);
-        if (idx < 0) {
-          closeEditModal();
-          renderLog();
-          return;
-        }
-        var entry = log[idx];
-        var dateVal = dateInp.value;
-        if (!dateVal) {
-          alert('Please choose a session date.');
-          return;
-        }
-        var elapsedMs = parseDurationStr(durInp.value);
-        if (!isFinite(elapsedMs) || elapsedMs < 0) {
-          alert('Please enter a valid duration (for example 1:30:00 or 45:30).');
-          return;
-        }
-        var startMi = parseFloat(String(startInp.value).trim());
-        var endMi = parseFloat(String(endInp.value).trim());
-        if (!isFinite(startMi) || !isFinite(endMi)) {
-          alert('Please enter valid start and end mileage.');
-          return;
-        }
-        if (endMi < startMi) {
-          alert('End mileage cannot be less than start mileage.');
-          return;
-        }
-
-        var endedAt = applyDateKeepingLocalTime(Number(entry.endedAt), dateVal);
-        var startedAt = endedAt - elapsedMs;
-
-        entry.startedAt = startedAt;
-        entry.endedAt = endedAt;
-        entry.elapsedMs = elapsedMs;
-        entry.startMileage = startMi;
-        entry.endMileage = endMi;
-        entry.milesDriven = Math.round((endMi - startMi) * 100) / 100;
-        if (entry.id == null || entry.id === undefined) {
-          entry.id = Number(entry.endedAt) || Date.now();
-        }
-
-        writeLog(log);
-        closeEditModal();
-        renderLog();
-      });
-
-      document.addEventListener('keydown', function workLogEditEscape(e) {
-        if (e.key !== 'Escape') return;
-        if (!editModalEl.classList.contains('is-open')) return;
-        closeEditModal();
-      });
+        '<div class="work-log-detail-body">' +
+        '<p class="work-log-detail-line"><strong>Odometer</strong> ' +
+        escapeHtml(sm) +
+        ' → ' +
+        escapeHtml(em) +
+        ' <span class="work-log-detail-miles">(' +
+        escapeHtml(md) +
+        ' mi)</span></p>' +
+        '<p class="work-log-detail-line"><strong>Duration</strong> ' +
+        escapeHtml(formatElapsed(entry.elapsedMs || 0)) +
+        '</p>' +
+        '</div>'
+      );
     }
 
-    function openWorkLogEdit(entry) {
-      ensureEditModal();
-      workLogEditEntryId = entry.id != null ? entry.id : entry.endedAt;
-      var dateInp = editModalEl.querySelector('#workLogEditDate');
-      var durInp = editModalEl.querySelector('#workLogEditDuration');
-      var startInp = editModalEl.querySelector('#workLogEditStartMileage');
-      var endInp = editModalEl.querySelector('#workLogEditEndMileage');
-      var milesPrev = editModalEl.querySelector('#workLogEditMilesPreview');
-      dateInp.value = toDateInputValue(entry.endedAt);
-      durInp.value = formatElapsed(entry.elapsedMs || 0);
-      startInp.value = String(entry.startMileage != null ? entry.startMileage : '');
-      endInp.value = String(entry.endMileage != null ? entry.endMileage : '');
-      var a = parseFloat(startInp.value);
-      var b = parseFloat(endInp.value);
-      if (isFinite(a) && isFinite(b)) {
-        milesPrev.textContent =
-          'Miles driven: ' + String(Math.round((b - a) * 100) / 100);
-      } else {
-        milesPrev.textContent = '';
+    function buildWorkLogEditForm(entry, rowKey) {
+      var html =
+        '<div class="edit-form" data-work-id="' +
+        String(rowKey) +
+        '">' +
+        '<div class="edit-fields">' +
+        '<label class="edit-field"><span>Started</span>' +
+        '<input type="datetime-local" step="1" data-field="startedAt" value="' +
+        escapeHtml(toDatetimeLocal(entry.startedAt)) +
+        '" /></label>' +
+        '<label class="edit-field"><span>Ended</span>' +
+        '<input type="datetime-local" step="1" data-field="endedAt" value="' +
+        escapeHtml(toDatetimeLocal(entry.endedAt)) +
+        '" /></label>' +
+        '</div>' +
+        '<div class="edit-fields">' +
+        '<label class="edit-field"><span>Start mileage</span>' +
+        '<input type="number" min="0" step="0.1" inputmode="decimal" data-field="startMileage" value="' +
+        escapeHtml(String(entry.startMileage != null ? entry.startMileage : '')) +
+        '" /></label>' +
+        '<label class="edit-field"><span>End mileage</span>' +
+        '<input type="number" min="0" step="0.1" inputmode="decimal" data-field="endMileage" value="' +
+        escapeHtml(String(entry.endMileage != null ? entry.endMileage : '')) +
+        '" /></label>' +
+        '</div>' +
+        '<div class="edit-actions">' +
+        '<button type="button" class="btn-secondary" data-action="cancel">Cancel</button>' +
+        '<button type="button" class="btn-primary" data-action="save">Save Changes</button>' +
+        '</div>' +
+        '</div>';
+      return html;
+    }
+
+    function deleteWorkEntry(rowKey) {
+      if (
+        !window.confirm(
+          'Delete this work session from the log? This cannot be undone.'
+        )
+      ) {
+        return;
       }
-      editModalEl.classList.add('is-open');
-      editModalEl.setAttribute('aria-hidden', 'false');
-      document.body.style.overflow = 'hidden';
-      setTimeout(function () {
-        dateInp.focus();
-      }, 0);
+      var log = readLog().filter(function (e) {
+        return workLogRowKey(e) !== Number(rowKey);
+      });
+      writeLog(log);
+      expandedIds.delete(Number(rowKey));
+      if (editingId === Number(rowKey)) editingId = null;
+      renderLog();
+    }
+
+    function saveWorkLogEdit(rowKey, formEl) {
+      var log = readLog();
+      var idx = findWorkLogEntryIndex(log, rowKey);
+      if (idx < 0) return;
+      var entry = log[idx];
+
+      var startInput = formEl.querySelector('[data-field="startedAt"]');
+      var endInput = formEl.querySelector('[data-field="endedAt"]');
+      var startMiInput = formEl.querySelector('[data-field="startMileage"]');
+      var endMiInput = formEl.querySelector('[data-field="endMileage"]');
+
+      var newStart = new Date(startInput.value).getTime();
+      var newEnd = new Date(endInput.value).getTime();
+      if (isNaN(newStart) || isNaN(newEnd)) {
+        alert('Please enter valid start and end date/times.');
+        return;
+      }
+      if (newEnd < newStart) {
+        alert('End time cannot be before start time.');
+        return;
+      }
+
+      var startMi = parseFloat(String(startMiInput.value).trim());
+      var endMi = parseFloat(String(endMiInput.value).trim());
+      if (!isFinite(startMi) || !isFinite(endMi)) {
+        alert('Please enter valid start and end mileage.');
+        return;
+      }
+      if (endMi < startMi) {
+        alert('End mileage cannot be less than start mileage.');
+        return;
+      }
+
+      entry.startedAt = newStart;
+      entry.endedAt = newEnd;
+      entry.elapsedMs = Math.max(0, newEnd - newStart);
+      entry.startMileage = startMi;
+      entry.endMileage = endMi;
+      entry.milesDriven = Math.round((endMi - startMi) * 100) / 100;
+      if (entry.id == null || entry.id === undefined) {
+        entry.id = Number(rowKey);
+      }
+
+      editingId = null;
+      writeLog(log);
+      renderLog();
     }
 
     function renderLog() {
@@ -517,39 +484,95 @@
       tableWrap.hidden = false;
       emptyEl.hidden = true;
       entries.forEach(function (entry) {
-        var rowId = entry.id != null ? entry.id : entry.endedAt;
+        var rowKey = workLogRowKey(entry);
+        var id = Number(rowKey);
+        var isExpanded = expandedIds.has(id) || editingId === id;
+        var isEditing = editingId === id;
+
         var tr = document.createElement('tr');
-        tr.className = 'log-row work-log-row';
+        tr.className =
+          'log-row work-log-row' + (isExpanded ? ' expanded' : '');
+        tr.dataset.id = String(rowKey);
         tr.innerHTML =
-          '<td class="work-log-col-date" data-label="Date">' + formatDate(entry.endedAt) + '</td>' +
-          '<td class="work-log-col-started" data-label="Started">' + formatTime(entry.startedAt) + '</td>' +
-          '<td class="work-log-col-ended" data-label="Ended">' + formatTime(entry.endedAt) + '</td>' +
+          '<td class="work-log-col-date" data-label="Date">' +
+          formatDate(entry.endedAt) +
+          '</td>' +
+          '<td class="work-log-col-started" data-label="Started">' +
+          formatTime(entry.startedAt) +
+          '</td>' +
+          '<td class="work-log-col-ended" data-label="Ended">' +
+          formatTime(entry.endedAt) +
+          '</td>' +
           '<td data-label="Duration" class="td-duration-stack">' +
           '<div class="duration-stack">' +
           '<span class="duration-cell">' +
-          '<span class="duration-pill">' + formatElapsed(entry.elapsedMs) + '</span>' +
+          '<span class="duration-pill">' +
+          formatElapsed(entry.elapsedMs) +
+          '</span>' +
+          '<span class="expand-arrow" aria-hidden="true">&#9656;</span>' +
           '</span>' +
           '</div>' +
           '</td>' +
-          '<td class="work-log-col-odo-start" data-label="Start mi">' + String(entry.startMileage) + '</td>' +
-          '<td class="work-log-col-odo-end" data-label="End mi">' + String(entry.endMileage) + '</td>' +
-          '<td class="work-log-col-miles-delta" data-label="Miles">' + String(entry.milesDriven) + '</td>' +
-          '<td class="work-log-actions-cell" data-label=""><button type="button" class="log-notes-btn work-log-edit-btn" data-entry-id="' +
-          String(rowId) +
-          '">Edit</button></td>';
+          '<td class="work-log-col-odo-start" data-label="Start mi">' +
+          String(entry.startMileage) +
+          '</td>' +
+          '<td class="work-log-col-odo-end" data-label="End mi">' +
+          String(entry.endMileage) +
+          '</td>' +
+          '<td class="work-log-col-miles-delta" data-label="Miles">' +
+          String(entry.milesDriven) +
+          '</td>';
         tbody.appendChild(tr);
+
+        var detailsTr = document.createElement('tr');
+        detailsTr.className = 'log-details';
+        detailsTr.hidden = !isExpanded;
+        detailsTr.dataset.id = String(rowKey);
+        var detailsCell = document.createElement('td');
+        detailsCell.colSpan = 7;
+        detailsCell.innerHTML = isEditing
+          ? buildWorkLogEditForm(entry, rowKey)
+          : buildWorkLogViewBody(entry);
+        detailsTr.appendChild(detailsCell);
+        tbody.appendChild(detailsTr);
       });
     }
 
     tbody.addEventListener('click', function (e) {
-      var btn = e.target.closest('.work-log-edit-btn');
-      if (!btn) return;
-      e.preventDefault();
-      var id = btn.getAttribute('data-entry-id');
-      var log = readLog();
-      var idx = findWorkLogEntryIndex(log, id);
-      if (idx < 0) return;
-      openWorkLogEdit(log[idx]);
+      var row = e.target.closest('tr.log-row');
+      if (row) {
+        var id = Number(row.dataset.id);
+        var wasExpanded = expandedIds.has(id) || editingId === id;
+        if (wasExpanded) {
+          expandedIds.delete(id);
+          if (editingId === id) editingId = null;
+        } else {
+          expandedIds.add(id);
+        }
+        renderLog();
+        return;
+      }
+
+      var actionBtn = e.target.closest('[data-action]');
+      if (!actionBtn) return;
+      var detailsTr = actionBtn.closest('tr.log-details');
+      if (!detailsTr) return;
+      var id = Number(detailsTr.dataset.id);
+      var action = actionBtn.dataset.action;
+
+      if (action === 'edit') {
+        editingId = id;
+        expandedIds.add(id);
+        renderLog();
+      } else if (action === 'delete') {
+        deleteWorkEntry(id);
+      } else if (action === 'cancel') {
+        editingId = null;
+        renderLog();
+      } else if (action === 'save') {
+        var form = actionBtn.closest('.edit-form');
+        if (form) saveWorkLogEdit(id, form);
+      }
     });
 
     clearBtn.addEventListener('click', function () {

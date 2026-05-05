@@ -2344,72 +2344,24 @@ a.calendar-day-schedule-row:focus-visible {
   font-size: 20px;
 }
 
-.work-log-actions-col {
-  text-align: right;
-  white-space: nowrap;
+.work-log-detail-body {
+  padding: 0 18px 14px;
 }
 
-.work-log-edit-modal {
-  max-width: 420px;
-  text-align: left;
-}
-
-.work-log-edit-modal h2 {
-  text-align: center;
-}
-
-.work-log-edit-fields {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  margin-bottom: 18px;
-}
-
-.work-log-edit-field label {
-  display: block;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: #4f5f70;
-  margin-bottom: 6px;
-}
-
-.work-log-edit-field input {
-  width: 100%;
-  box-sizing: border-box;
-  min-height: 44px;
-  padding: 10px 12px;
-  font-size: 16px;
-  font-family: inherit;
-  border: 2px solid var(--border);
-  border-radius: 10px;
-  background: var(--white);
+.work-log-detail-line {
+  margin: 0 0 10px;
+  font-size: 15px;
+  line-height: 1.45;
   color: var(--black);
 }
 
-.work-log-edit-field input:focus {
-  outline: none;
-  border-color: var(--light-blue-strong);
-  box-shadow: 0 0 0 3px rgba(108, 194, 238, 0.18);
+.work-log-detail-line:last-child {
+  margin-bottom: 0;
 }
 
-.work-log-edit-hint {
-  margin: 0;
-  font-size: 12px;
-  font-weight: 600;
-  color: #5c6778;
-}
-
-.work-log-edit-mile-preview {
-  margin: 0;
-  font-size: 14px;
-  font-weight: 700;
+.work-log-detail-miles {
   color: #0a4f72;
-}
-
-.work-log-edit-btn {
-  white-space: nowrap;
+  font-weight: 600;
 }
 
 .work-mileage-modal {
@@ -2550,15 +2502,11 @@ a.calendar-day-schedule-row:focus-visible {
   section.log-page[data-work-log="true"] .work-log-col-odo-end {
     display: none !important;
   }
-  section.log-page[data-work-log="true"] .work-log-actions-cell::before {
-    display: none;
+  section.log-page[data-work-log="true"] .work-log-detail-body {
+    padding: 0 14px 12px;
   }
-  section.log-page[data-work-log="true"] .work-log-actions-cell {
-    justify-content: flex-end;
-  }
-  section.log-page[data-work-log="true"] .work-log-actions-cell .work-log-edit-btn {
-    min-height: 44px;
-    padding: 10px 16px;
+  section.log-page[data-work-log="true"] .work-log-detail-line {
+    font-size: 14px;
   }
 }
 
