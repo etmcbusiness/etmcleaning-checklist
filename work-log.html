@@ -20,7 +20,7 @@
 </head>
 <body>
   <main>
-    <section class="log-page">
+    <section class="log-page" data-work-log="true">
       <a class="back-link" href="index.html">&larr; Back to Home</a>
 
       <header class="loc-header">
@@ -31,15 +31,16 @@
       <div class="log-summary" id="workLogSummary"></div>
 
       <div class="log-table-wrap" id="workLogTableWrap" hidden>
-        <table class="log-table">
+        <table class="log-table work-log-table">
           <thead>
             <tr>
               <th>Date</th>
-              <th>Started - Ended</th>
+              <th>Time</th>
               <th>Duration</th>
               <th>Start Mileage</th>
               <th>End Mileage</th>
               <th>Miles</th>
+              <th class="work-log-actions-col">Actions</th>
             </tr>
           </thead>
           <tbody id="workLogBody"></tbody>

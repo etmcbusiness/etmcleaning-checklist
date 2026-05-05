@@ -2344,6 +2344,74 @@ a.calendar-day-schedule-row:focus-visible {
   font-size: 20px;
 }
 
+.work-log-actions-col {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.work-log-edit-modal {
+  max-width: 420px;
+  text-align: left;
+}
+
+.work-log-edit-modal h2 {
+  text-align: center;
+}
+
+.work-log-edit-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.work-log-edit-field label {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #4f5f70;
+  margin-bottom: 6px;
+}
+
+.work-log-edit-field input {
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 44px;
+  padding: 10px 12px;
+  font-size: 16px;
+  font-family: inherit;
+  border: 2px solid var(--border);
+  border-radius: 10px;
+  background: var(--white);
+  color: var(--black);
+}
+
+.work-log-edit-field input:focus {
+  outline: none;
+  border-color: var(--light-blue-strong);
+  box-shadow: 0 0 0 3px rgba(108, 194, 238, 0.18);
+}
+
+.work-log-edit-hint {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: #5c6778;
+}
+
+.work-log-edit-mile-preview {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: #0a4f72;
+}
+
+.work-log-edit-btn {
+  white-space: nowrap;
+}
+
 .work-mileage-modal {
   max-width: 420px;
 }
@@ -2444,6 +2512,61 @@ a.calendar-day-schedule-row:focus-visible {
   section.log-page[data-master-log="true"] .log-table tr.log-row .duration-pill {
     font-size: 12px;
     padding: 3px 10px;
+  }
+
+  /* Work log (mileage): compact phone layout like master cleaning log */
+  section.log-page[data-work-log="true"] .log-summary {
+    gap: 8px;
+    margin-bottom: 14px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  section.log-page[data-work-log="true"] .summary-tile-work-miles-year {
+    grid-column: 1 / -1;
+  }
+  section.log-page[data-work-log="true"] .summary-tile-work-time-week {
+    display: none !important;
+  }
+  section.log-page[data-work-log="true"] .summary-tile-work {
+    padding: 10px 12px;
+    border-radius: 10px;
+  }
+  section.log-page[data-work-log="true"] .summary-num {
+    font-size: 18px;
+  }
+  section.log-page[data-work-log="true"] .summary-label {
+    font-size: 10px;
+    letter-spacing: 1.2px;
+  }
+  section.log-page[data-work-log="true"] .log-table tr.work-log-row {
+    padding: 3px 2px;
+  }
+  section.log-page[data-work-log="true"] .log-table tr.work-log-row > td {
+    padding: 3px 12px;
+    font-size: 14px;
+    line-height: 1.3;
+  }
+  section.log-page[data-work-log="true"] .log-table tr.work-log-row > td::before {
+    font-size: 10px;
+    letter-spacing: 1px;
+    padding-right: 8px;
+  }
+  section.log-page[data-work-log="true"] .log-table tr.work-log-row .duration-pill {
+    font-size: 12px;
+    padding: 3px 10px;
+  }
+  section.log-page[data-work-log="true"] .work-log-col-odo-start,
+  section.log-page[data-work-log="true"] .work-log-col-odo-end {
+    display: none !important;
+  }
+  section.log-page[data-work-log="true"] .work-log-actions-cell::before {
+    display: none;
+  }
+  section.log-page[data-work-log="true"] .work-log-actions-cell {
+    justify-content: flex-end;
+  }
+  section.log-page[data-work-log="true"] .work-log-actions-cell .work-log-edit-btn {
+    min-height: 44px;
+    padding: 10px 16px;
   }
 }
 
