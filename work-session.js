@@ -436,18 +436,9 @@
         if (!entries.length) {
           summaryEl.innerHTML = '';
         } else {
-          var totalMs = entries.reduce(function (sum, entry) {
-            return sum + (Number(entry.elapsedMs) || 0);
-          }, 0);
           var now = new Date();
           var year = now.getFullYear();
           var month = now.getMonth();
-          var totalMilesThisYear = entries.reduce(function (sum, entry) {
-            var endedAt = Number(entry.endedAt) || 0;
-            var d = new Date(endedAt);
-            if (d.getFullYear() !== year) return sum;
-            return sum + (Number(entry.milesDriven) || 0);
-          }, 0);
           var totalMilesThisMonth = entries.reduce(function (sum, entry) {
             var endedAt = Number(entry.endedAt) || 0;
             var d = new Date(endedAt);
@@ -465,16 +456,27 @@
           endOfWeek.setHours(23, 59, 59, 999);
           var startOfWeekMs = startOfWeek.getTime();
           var endOfWeekMs = endOfWeek.getTime();
+          var totalMilesThisWeek = entries.reduce(function (sum, entry) {
+            var endedAt = Number(entry.endedAt) || 0;
+            if (endedAt < startOfWeekMs || endedAt > endOfWeekMs) return sum;
+            return sum + (Number(entry.milesDriven) || 0);
+          }, 0);
+          var totalTimeThisMonthMs = entries.reduce(function (sum, entry) {
+            var endedAt = Number(entry.endedAt) || 0;
+            var d = new Date(endedAt);
+            if (d.getFullYear() !== year || d.getMonth() !== month) return sum;
+            return sum + (Number(entry.elapsedMs) || 0);
+          }, 0);
           var totalTimeThisWeekMs = entries.reduce(function (sum, entry) {
             var endedAt = Number(entry.endedAt) || 0;
             if (endedAt < startOfWeekMs || endedAt > endOfWeekMs) return sum;
             return sum + (Number(entry.elapsedMs) || 0);
           }, 0);
           summaryEl.innerHTML =
-            '<div class="summary-tile summary-tile-work summary-tile-work-miles-year"><span class="summary-num">' + String(totalMilesThisYear) + '</span><span class="summary-label">Total Miles This Year</span></div>' +
             '<div class="summary-tile summary-tile-work summary-tile-work-miles-month"><span class="summary-num">' + String(totalMilesThisMonth) + '</span><span class="summary-label">Total Miles This Month</span></div>' +
-            '<div class="summary-tile summary-tile-work summary-tile-work-time-total"><span class="summary-num">' + formatElapsed(totalMs) + '</span><span class="summary-label">Total Time Worked</span></div>' +
-            '<div class="summary-tile summary-tile-work summary-tile-work-time-week"><span class="summary-num">' + formatElapsed(totalTimeThisWeekMs) + '</span><span class="summary-label">Time Mon–Sun (this week)</span></div>';
+            '<div class="summary-tile summary-tile-work summary-tile-work-miles-week"><span class="summary-num">' + String(totalMilesThisWeek) + '</span><span class="summary-label">Total Miles This Week</span></div>' +
+            '<div class="summary-tile summary-tile-work summary-tile-work-time-month"><span class="summary-num">' + formatElapsed(totalTimeThisMonthMs) + '</span><span class="summary-label">Total Time Worked This Month</span></div>' +
+            '<div class="summary-tile summary-tile-work summary-tile-work-time-week"><span class="summary-num">' + formatElapsed(totalTimeThisWeekMs) + '</span><span class="summary-label">Total Time Worked This Week</span></div>';
         }
       }
       if (!entries.length) {

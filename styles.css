@@ -1624,6 +1624,10 @@ a.calendar-day-schedule-row:focus-visible {
   color: #6b7785;
 }
 
+section.log-page[data-work-log="true"] .log-summary {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
 .log-table-wrap {
   background: var(--white);
   border: 1px solid var(--border);
@@ -2475,18 +2479,11 @@ a.calendar-day-schedule-row:focus-visible {
     width: 100%;
   }
 
-  /* Work log summary: same grid rhythm as all-locations cleaning log */
+  /* Work log: four tiles in a 2×2 grid (month/week miles + month/week time); week = Mon–Sun local */
   section.log-page[data-work-log="true"] .log-summary {
     gap: 8px;
     margin-bottom: 14px;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-  section.log-page[data-work-log="true"] .summary-tile-work-miles-year {
-    grid-column: 1 / -1;
-  }
-  /* Week = Monday 00:00 – Sunday 23:59 (local); see work-session.js */
-  section.log-page[data-work-log="true"] .summary-tile-work-time-week {
-    grid-column: 1 / -1;
   }
   section.log-page[data-work-log="true"] .summary-tile-work {
     padding: 10px 12px;
