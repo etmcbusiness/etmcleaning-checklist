@@ -2484,8 +2484,9 @@ a.calendar-day-schedule-row:focus-visible {
   section.log-page[data-work-log="true"] .summary-tile-work-miles-year {
     grid-column: 1 / -1;
   }
+  /* Week = Monday 00:00 – Sunday 23:59 (local); see work-session.js */
   section.log-page[data-work-log="true"] .summary-tile-work-time-week {
-    display: none !important;
+    grid-column: 1 / -1;
   }
   section.log-page[data-work-log="true"] .summary-tile-work {
     padding: 10px 12px;

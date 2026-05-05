@@ -454,6 +454,7 @@
             if (d.getFullYear() !== year || d.getMonth() !== month) return sum;
             return sum + (Number(entry.milesDriven) || 0);
           }, 0);
+          /* Calendar week Mon–Sun (local): Mon 00:00:00 through Sun 23:59:59.999 */
           var startOfWeek = new Date(now);
           var dayOfWeek = startOfWeek.getDay();
           var daysFromMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
@@ -473,7 +474,7 @@
             '<div class="summary-tile summary-tile-work summary-tile-work-miles-year"><span class="summary-num">' + String(totalMilesThisYear) + '</span><span class="summary-label">Total Miles This Year</span></div>' +
             '<div class="summary-tile summary-tile-work summary-tile-work-miles-month"><span class="summary-num">' + String(totalMilesThisMonth) + '</span><span class="summary-label">Total Miles This Month</span></div>' +
             '<div class="summary-tile summary-tile-work summary-tile-work-time-total"><span class="summary-num">' + formatElapsed(totalMs) + '</span><span class="summary-label">Total Time Worked</span></div>' +
-            '<div class="summary-tile summary-tile-work summary-tile-work-time-week"><span class="summary-num">' + formatElapsed(totalTimeThisWeekMs) + '</span><span class="summary-label">Total Time This Week</span></div>';
+            '<div class="summary-tile summary-tile-work summary-tile-work-time-week"><span class="summary-num">' + formatElapsed(totalTimeThisWeekMs) + '</span><span class="summary-label">Time Mon–Sun (this week)</span></div>';
         }
       }
       if (!entries.length) {
