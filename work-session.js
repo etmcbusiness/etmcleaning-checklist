@@ -57,6 +57,12 @@
       .replace(/'/g, '&#39;');
   }
 
+  function formatWorkLogNotes(text) {
+    var t = text == null ? '' : String(text).trim();
+    if (!t) return '';
+    return escapeHtml(t).replace(/\r\n|\r|\n/g, '<br />');
+  }
+
   function workLogRowKey(entry) {
     if (entry && entry.id != null && entry.id !== undefined) return Number(entry.id);
     return Number(entry.endedAt);
@@ -189,14 +195,82 @@
     });
   }
 
+  var workNotesModalEl = null;
+  var workNotesResolve = null;
+
+  function ensureWorkSessionNotesModal() {
+    if (workNotesModalEl) return workNotesModalEl;
+    var wrap = document.createElement('div');
+    wrap.className = 'modal-backdrop';
+    wrap.id = 'workSessionNotesModal';
+    wrap.setAttribute('aria-hidden', 'true');
+    wrap.innerHTML =
+      '<div class="modal work-session-notes-modal" role="dialog" aria-modal="true" aria-labelledby="workSessionNotesTitle">' +
+      '<h2 id="workSessionNotesTitle">Session notes</h2>' +
+      '<p class="work-session-notes-hint">Optional — shown only when you open this entry in the work log.</p>' +
+      '<textarea id="workSessionNotesInput" class="work-session-notes-input" rows="4" placeholder="Stops, fuel, issues, etc."></textarea>' +
+      '<div class="modal-actions">' +
+      '<button type="button" class="modal-btn modal-yes" id="workSessionNotesSkip">Skip</button>' +
+      '<button type="button" class="modal-btn modal-no" id="workSessionNotesSave">Save session</button>' +
+      '</div></div>';
+    document.body.appendChild(wrap);
+    workNotesModalEl = wrap;
+
+    var skipBtn = document.getElementById('workSessionNotesSkip');
+    var saveBtn = document.getElementById('workSessionNotesSave');
+    var ta = document.getElementById('workSessionNotesInput');
+
+    function close(notesTrimmed) {
+      workNotesModalEl.classList.remove('is-open');
+      workNotesModalEl.setAttribute('aria-hidden', 'true');
+      document.body.style.overflow = '';
+      if (workNotesResolve) {
+        var r = workNotesResolve;
+        workNotesResolve = null;
+        r(notesTrimmed);
+      }
+    }
+
+    skipBtn.addEventListener('click', function () {
+      close('');
+    });
+    saveBtn.addEventListener('click', function () {
+      close(String(ta.value || '').trim());
+    });
+    ta.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        close('');
+      }
+    });
+    wrap.addEventListener('click', function (e) {
+      if (e.target === wrap) close('');
+    });
+    return workNotesModalEl;
+  }
+
+  function showWorkSessionNotesModal() {
+    ensureWorkSessionNotesModal();
+    var ta = document.getElementById('workSessionNotesInput');
+    ta.value = '';
+    workNotesModalEl.classList.add('is-open');
+    workNotesModalEl.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+    setTimeout(function () {
+      ta.focus();
+    }, 0);
+    return new Promise(function (resolve) {
+      workNotesResolve = resolve;
+    });
+  }
+
   function initHomePanel() {
     var card = document.getElementById('workSessionCard');
     var timerEl = document.getElementById('workSessionTimer');
     var mileageEl = document.getElementById('workSessionMileage');
     var statusEl = document.getElementById('workSessionStatus');
-    var startBtn = document.getElementById('startWorkBtn');
-    var endBtn = document.getElementById('endWorkBtn');
-    if (!card || !timerEl || !mileageEl || !statusEl || !startBtn || !endBtn) return;
+    var toggleBtn = document.getElementById('workSessionToggleBtn');
+    if (!card || !timerEl || !mileageEl || !statusEl || !toggleBtn) return;
 
     var tickHandle = null;
 
@@ -211,8 +285,10 @@
       var active = readActive();
       if (!active) {
         card.classList.remove('is-active');
-        startBtn.disabled = false;
-        endBtn.disabled = true;
+        toggleBtn.textContent = 'Start Work';
+        toggleBtn.className = 'btn-primary work-session-toggle-btn';
+        toggleBtn.setAttribute('aria-label', 'Start work session');
+        toggleBtn.disabled = false;
         timerEl.textContent = '00:00:00';
         mileageEl.textContent = 'Not started';
         statusEl.textContent = 'Enter starting mileage to begin.';
@@ -221,9 +297,11 @@
       }
 
       card.classList.add('is-active');
-      startBtn.disabled = true;
-      endBtn.disabled = false;
-      statusEl.textContent = 'Work in progress... End Work to complete this session.';
+      toggleBtn.textContent = 'End Work';
+      toggleBtn.className = 'btn-secondary work-session-toggle-btn';
+      toggleBtn.setAttribute('aria-label', 'End work session');
+      toggleBtn.disabled = false;
+      statusEl.textContent = 'Work in progress… tap End Work to complete this session.';
       mileageEl.textContent = String(active.startMileage);
 
       function updateTimer() {
@@ -235,29 +313,21 @@
       tickHandle = setInterval(updateTimer, 1000);
     }
 
-    startBtn.addEventListener('click', function () {
-      if (readActive()) {
-        render();
-        return;
-      }
-      parseMileageInput('Enter starting vehicle mileage:').then(function (startMileage) {
-        if (startMileage === null) return;
-        if (isNaN(startMileage)) {
-          alert('Please enter a valid mileage number.');
-          return;
-        }
-        writeJson(ACTIVE_KEY, {
-          startedAt: Date.now(),
-          startMileage: startMileage
-        });
-        render();
-      });
-    });
-
-    endBtn.addEventListener('click', function () {
+    toggleBtn.addEventListener('click', function () {
       var active = readActive();
       if (!active) {
-        render();
+        parseMileageInput('Enter starting vehicle mileage:').then(function (startMileage) {
+          if (startMileage === null) return;
+          if (isNaN(startMileage)) {
+            alert('Please enter a valid mileage number.');
+            return;
+          }
+          writeJson(ACTIVE_KEY, {
+            startedAt: Date.now(),
+            startMileage: startMileage
+          });
+          render();
+        });
         return;
       }
       parseMileageInput('Enter ending vehicle mileage:', active.startMileage).then(function (endMileage) {
@@ -271,20 +341,26 @@
           return;
         }
         var endedAt = Date.now();
-        var entry = {
-          id: endedAt,
-          startedAt: Number(active.startedAt),
-          endedAt: endedAt,
-          elapsedMs: Math.max(0, endedAt - Number(active.startedAt)),
-          startMileage: Number(active.startMileage),
-          endMileage: endMileage,
-          milesDriven: endMileage - Number(active.startMileage)
-        };
-        var log = readLog();
-        log.push(entry);
-        writeLog(log);
-        localStorage.removeItem(ACTIVE_KEY);
-        render();
+        var startAt = Number(active.startedAt);
+        var startMi = Number(active.startMileage);
+        showWorkSessionNotesModal().then(function (notesText) {
+          var notes = notesText != null ? String(notesText).trim() : '';
+          var entry = {
+            id: endedAt,
+            startedAt: startAt,
+            endedAt: endedAt,
+            elapsedMs: Math.max(0, endedAt - startAt),
+            startMileage: startMi,
+            endMileage: endMileage,
+            milesDriven: endMileage - startMi
+          };
+          if (notes) entry.notes = notes;
+          var log = readLog();
+          log.push(entry);
+          writeLog(log);
+          localStorage.removeItem(ACTIVE_KEY);
+          render();
+        });
       });
     });
 
@@ -325,6 +401,13 @@
         '<p class="work-log-detail-line"><strong>Duration</strong> ' +
         escapeHtml(formatElapsed(entry.elapsedMs || 0)) +
         '</p>' +
+        (entry.notes && String(entry.notes).trim()
+          ? '<div class="log-notes-block work-log-notes-in-detail">' +
+            '<h4 class="log-notes-title">Notes</h4>' +
+            '<div class="log-notes-body">' +
+            formatWorkLogNotes(entry.notes) +
+            '</div></div>'
+          : '') +
         '</div>'
       );
     }
@@ -354,6 +437,10 @@
         escapeHtml(String(entry.endMileage != null ? entry.endMileage : '')) +
         '" /></label>' +
         '</div>' +
+        '<label class="edit-field edit-field-work-notes"><span>Notes (optional)</span>' +
+        '<textarea data-field="notes" class="work-log-edit-notes" rows="4" placeholder="">' +
+        escapeHtml(entry.notes != null ? String(entry.notes) : '') +
+        '</textarea></label>' +
         '<div class="edit-actions">' +
         '<button type="button" class="btn-secondary" data-action="cancel">Cancel</button>' +
         '<button type="button" class="btn-primary" data-action="save">Save Changes</button>' +
@@ -389,6 +476,7 @@
       var endInput = formEl.querySelector('[data-field="endedAt"]');
       var startMiInput = formEl.querySelector('[data-field="startMileage"]');
       var endMiInput = formEl.querySelector('[data-field="endMileage"]');
+      var notesInput = formEl.querySelector('[data-field="notes"]');
 
       var newStart = new Date(startInput.value).getTime();
       var newEnd = new Date(endInput.value).getTime();
@@ -420,6 +508,12 @@
       entry.milesDriven = Math.round((endMi - startMi) * 100) / 100;
       if (entry.id == null || entry.id === undefined) {
         entry.id = Number(rowKey);
+      }
+      var noteVal = notesInput ? String(notesInput.value).trim() : '';
+      if (noteVal) {
+        entry.notes = noteVal;
+      } else {
+        delete entry.notes;
       }
 
       editingId = null;

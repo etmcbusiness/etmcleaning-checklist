@@ -210,8 +210,10 @@ a {
   gap: 6px;
 }
 
-.work-session-actions .btn-primary,
-.work-session-actions .btn-secondary {
+.work-session-actions .work-session-toggle-btn {
+  flex: 1 1 auto;
+  width: 100%;
+  min-width: 0;
   min-height: 28px;
   padding: 5px 8px;
   font-size: 11px;
@@ -2368,6 +2370,10 @@ section.log-page[data-work-log="true"] .log-summary {
   font-weight: 600;
 }
 
+.work-log-detail-body .work-log-notes-in-detail {
+  margin-top: 12px;
+}
+
 .work-mileage-modal {
   max-width: 420px;
 }
@@ -2387,6 +2393,52 @@ section.log-page[data-work-log="true"] .log-summary {
   outline: none;
   border-color: var(--light-blue-strong);
   box-shadow: 0 0 0 3px rgba(108, 194, 238, 0.3);
+}
+
+.work-session-notes-modal {
+  max-width: 420px;
+  text-align: left;
+}
+
+.work-session-notes-modal h2 {
+  text-align: center;
+}
+
+.work-session-notes-hint {
+  margin: 0 0 12px;
+  font-size: 14px;
+  line-height: 1.4;
+  color: #4a5560;
+}
+
+.work-session-notes-input {
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 100px;
+  padding: 12px 14px;
+  font-size: 16px;
+  font-family: inherit;
+  line-height: 1.45;
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  margin: 0 0 16px;
+  resize: vertical;
+  background: var(--white);
+  color: var(--black);
+}
+
+.work-session-notes-input:focus {
+  outline: none;
+  border-color: var(--light-blue-strong);
+  box-shadow: 0 0 0 3px rgba(108, 194, 238, 0.22);
+}
+
+.edit-form .edit-field-work-notes {
+  margin-top: 4px;
+}
+
+.work-log-edit-notes {
+  min-height: 88px;
 }
 
 /* Mobile log table — switch to card layout */
@@ -3674,8 +3726,7 @@ label.btn-photo-add {
   .home-main.home-dashboard .work-session-status {
     font-size: 12px;
   }
-  .home-main.home-dashboard .work-session-actions .btn-primary,
-  .home-main.home-dashboard .work-session-actions .btn-secondary {
+  .home-main.home-dashboard .work-session-actions .work-session-toggle-btn {
     min-height: 44px;
     padding: 10px 12px;
     font-size: 14px;
