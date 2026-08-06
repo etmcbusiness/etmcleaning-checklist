@@ -1,3 +1,11 @@
+@font-face {
+  font-family: 'Cubano Sharp';
+  src: url('cubano-sharp.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
   --black: #0b0b0d;
   --white: #ffffff;
@@ -12,6 +20,12 @@
 
 * {
   box-sizing: border-box;
+}
+
+h1,
+h2,
+.location-btn__title {
+  font-family: 'Cubano Sharp', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
 [hidden] {
