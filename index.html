@@ -303,8 +303,10 @@
         var active = window.EtmOneOff.findActiveEntry();
         if (!active) return;
 
-        var btn = active.type === 'W' ? wBtn : jBtn;
-        btn.href = 'one-off-checklist.html?key=' + encodeURIComponent(active.storageKey);
+        var isWindow = active.type === 'W';
+        var btn = isWindow ? wBtn : jBtn;
+        var dest = isWindow ? 'one-off-window-checklist.html' : 'one-off-janitorial-checklist.html';
+        btn.href = dest + '?key=' + encodeURIComponent(active.storageKey);
         btn.textContent = 'Continue One-Off: ' + active.name;
         btn.classList.add('in-progress');
       }

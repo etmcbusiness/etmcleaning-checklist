@@ -4,16 +4,16 @@
 // Opt in on localhost: ?sw=1   Opt out anywhere: ?nosw=1 (unregister only).
 // Bumps the version below to invalidate the cache and force users to get
 // the latest files on their next visit.
-const CACHE_VERSION = 'v96';
+const CACHE_VERSION = 'v97';
 const CACHE_NAME = 'etm-checklist-' + CACHE_VERSION;
 
 const PRECACHE_URLS = [
   './',
   './index.html',
   './one-off-cleaning.html',
-  './one-off-checklist.html',
+  './one-off-janitorial-checklist.html',
+  './one-off-window-checklist.html',
   './one-off.js',
-  './one-off-checklist.js',
   './all-cleanings-log.html',
   './ramsey-rd.html',
   './ramsey-rd-checklist.html',

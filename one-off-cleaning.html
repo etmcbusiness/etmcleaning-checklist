@@ -112,7 +112,8 @@
           localStorage.setItem(startedKey, Date.now().toString());
         }
 
-        window.location.href = 'one-off-checklist.html?key=' + encodeURIComponent(storageKey);
+        var dest = type === 'W' ? 'one-off-window-checklist.html' : 'one-off-janitorial-checklist.html';
+        window.location.href = dest + '?key=' + encodeURIComponent(storageKey);
       });
     })();
   </script>
