@@ -1,4 +1,14 @@
 (function (global) {
+  /**
+   * iOS Safari only fires `click` on the first tap of an element styled with
+   * `:hover` if something is listening for touch — otherwise the first tap
+   * just previews the `:hover` state and the second tap is needed to click.
+   * An empty, passive touchstart listener is the standard workaround.
+   */
+  if (global.document) {
+    global.document.addEventListener('touchstart', function () {}, { passive: true });
+  }
+
   /** iOS WebKit PWA sometimes tints the overscroll “gutter”; force white on paint. */
   function paintOverscrollWhite() {
     var doc = global.document;
