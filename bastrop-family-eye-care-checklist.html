@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <script>document.addEventListener('touchstart',function(){},{passive:true});</script>
+  <script>document.addEventListener('touchstart',function(){},{passive:true});document.addEventListener('gesturestart',function(e){e.preventDefault();});document.addEventListener('gesturechange',function(e){e.preventDefault();});document.addEventListener('touchmove',function(e){if(e.touches&&e.touches.length>1)e.preventDefault();},{passive:false});var __etmLastTouchEnd=0;document.addEventListener('touchend',function(e){var now=Date.now();if(now-__etmLastTouchEnd<=300){e.preventDefault();}__etmLastTouchEnd=now;},{passive:false});</script>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <meta name="color-scheme" content="only light" />
   <meta name="supported-color-schemes" content="light" />
   <meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff" />
