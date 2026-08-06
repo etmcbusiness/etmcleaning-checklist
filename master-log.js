@@ -18,8 +18,7 @@
     'checklist-tanuki-games': 'Tanuki Games',
     'checklist-tanuki-games-windows': 'Tanuki Games',
     'checklist-the-commune': 'The Commune',
-    'checklist-ramsey-rd': 'Thrift at the Warehouse: Ramsey',
-    'checklist-warehouse': 'Thrift at the Warehouse: Warehouse'
+    'checklist-ramsey-rd': 'Thrift at the Warehouse: Ramsey'
   };
 
   function locationLabel(sourceKey) {
