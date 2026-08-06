@@ -4,7 +4,7 @@
 // Opt in on localhost: ?sw=1   Opt out anywhere: ?nosw=1 (unregister only).
 // Bumps the version below to invalidate the cache and force users to get
 // the latest files on their next visit.
-const CACHE_VERSION = 'v91';
+const CACHE_VERSION = 'v92';
 const CACHE_NAME = 'etm-checklist-' + CACHE_VERSION;
 
 const PRECACHE_URLS = [
@@ -55,6 +55,21 @@ const PRECACHE_URLS = [
   './mreyedr-hutto-checklist.html',
   './mreyedr-hutto-log.html',
   './warehouse.html',
+  './bee-cave-vision.html',
+  './bee-cave-vision-checklist.html',
+  './bee-cave-vision-log.html',
+  './mikas-airbnb.html',
+  './mikas-airbnb-checklist.html',
+  './mikas-airbnb-log.html',
+  './myeyedr-domain.html',
+  './myeyedr-domain-checklist.html',
+  './myeyedr-domain-log.html',
+  './myeyedr-seaholm.html',
+  './myeyedr-seaholm-checklist.html',
+  './myeyedr-seaholm-log.html',
+  './thrift-s-congress.html',
+  './thrift-s-congress-checklist.html',
+  './thrift-s-congress-log.html',
   './config.js',
   './styles.css',
   './checklist.js',
