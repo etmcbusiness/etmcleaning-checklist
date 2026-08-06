@@ -6,6 +6,7 @@
   const completedKey = storageKey + ':completedAt';
   const startedKey = storageKey + ':startedAt';
   const accumulatedKey = storageKey + ':accumulatedMs';
+  const cleanerCountKey = storageKey + ':cleanerCount';
   const logKey = storageKey + ':log';
   const taskTimingsKey = storageKey + ':taskTimings';
   const milestonesKey = storageKey + ':milestones';
@@ -539,6 +540,11 @@
     return !!(localStorage.getItem(startedKey) || localStorage.getItem(accumulatedKey));
   }
 
+  function getCleanerCount() {
+    const n = Number(localStorage.getItem(cleanerCountKey));
+    return n > 0 ? n : 1;
+  }
+
   function isRunning() {
     return !!localStorage.getItem(startedKey)
       && !localStorage.getItem(completedKey);
@@ -675,6 +681,7 @@
     localStorage.removeItem(startedKey);
     localStorage.removeItem(accumulatedKey);
     localStorage.removeItem(completedKey);
+    localStorage.removeItem(cleanerCountKey);
     localStorage.removeItem(taskTimingsKey);
     localStorage.removeItem(milestonesKey);
     localStorage.removeItem(storageKey);
@@ -764,7 +771,8 @@
       timerAvgLine.hidden = true;
       return;
     }
-    const log = readFullLog();
+    const cleaners = getCleanerCount();
+    const log = readFullLog().filter((e) => (Number(e.cleaners) || 1) === cleaners);
     if (!log.length) {
       timerAvgLine.hidden = true;
       return;
@@ -772,12 +780,13 @@
     const avgMs = log.reduce((s, e) => s + (e.elapsedMs || 0), 0) / log.length;
     const cur = getElapsedMs();
     const diffMs = cur - avgMs;
+    const crewLabel = cleaners === 1 ? '1 cleaner' : cleaners + ' cleaners';
     if (Math.abs(diffMs) < 20000) {
-      timerAvgLine.textContent = 'On pace with your average';
+      timerAvgLine.textContent = 'On pace with your average for ' + crewLabel;
     } else if (diffMs < 0) {
-      timerAvgLine.textContent = formatRoughMinutes(diffMs) + ' under your average';
+      timerAvgLine.textContent = formatRoughMinutes(diffMs) + ' under your average for ' + crewLabel;
     } else {
-      timerAvgLine.textContent = formatRoughMinutes(diffMs) + ' over your average';
+      timerAvgLine.textContent = formatRoughMinutes(diffMs) + ' over your average for ' + crewLabel;
     }
     timerAvgLine.hidden = false;
   }
@@ -1114,6 +1123,7 @@
     localStorage.removeItem(completedKey);
     localStorage.removeItem(startedKey);
     localStorage.removeItem(accumulatedKey);
+    localStorage.removeItem(cleanerCountKey);
     localStorage.removeItem(taskTimingsKey);
     localStorage.removeItem(milestonesKey);
     banner.hidden = true;
@@ -1155,6 +1165,7 @@
       sessionStart: sessionStart,
       completedAt: completedAt,
       elapsedMs: elapsedMs,
+      cleaners: getCleanerCount(),
       tasks: tasks
     };
     if (options && options.notesForNext) {
@@ -1165,6 +1176,10 @@
     }
     log.push(entry);
     localStorage.setItem(logKey, JSON.stringify(log));
+    // Lightweight marker so the home screen can show "last cleaned" for every location
+    // without JSON.parse-ing every location's full log (which only grows over time) on
+    // every visit — see index.html's getLatestCompletedAt().
+    localStorage.setItem(storageKey + ':lastCompletedAt', String(completedAt));
   }
 
   function getBackUrl() {
@@ -1209,6 +1224,7 @@
       localStorage.removeItem(completedKey);
       localStorage.removeItem(startedKey);
       localStorage.removeItem(accumulatedKey);
+      localStorage.removeItem(cleanerCountKey);
       localStorage.removeItem(taskTimingsKey);
       localStorage.removeItem(milestonesKey);
 

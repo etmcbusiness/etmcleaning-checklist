@@ -1686,6 +1686,23 @@ section.log-page[data-work-log="true"] .log-summary {
   font-size: 12px;
 }
 
+.crew-size-pill {
+  display: inline-block;
+  padding: 3px 10px;
+  background: transparent;
+  color: #6b7785;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  white-space: nowrap;
+}
+
+.summary-tile-crew {
+  border-left-color: #6b7785;
+}
+
 .duration-cell {
   display: inline-flex;
   align-items: center;
@@ -3570,6 +3587,41 @@ label.btn-photo-add {
   background: var(--light-blue);
   color: var(--black);
   border-color: var(--light-blue);
+}
+
+.cleaner-count-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.cleaner-count-option {
+  padding: 16px 0;
+  font-size: 20px;
+  font-weight: 800;
+  border-radius: 12px;
+  border: 2px solid var(--light-blue);
+  background: var(--light-blue);
+  color: var(--black);
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.15s ease, color 0.15s ease,
+    border-color 0.15s ease, transform 0.1s ease;
+}
+
+.cleaner-count-option:hover {
+  background: var(--light-blue-strong);
+  border-color: var(--light-blue-strong);
+  color: var(--white);
+}
+
+.cleaner-count-option:active {
+  transform: translateY(1px);
+}
+
+.cleaner-count-cancel {
+  width: 100%;
 }
 
 .modal-no:hover {

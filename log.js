@@ -107,6 +107,18 @@
 
   function writeLog(log) {
     localStorage.setItem(logKey, JSON.stringify(log));
+    // Keep the home screen's lightweight "last cleaned" marker in sync with edits/deletes
+    // here, so it never needs to re-parse the full log itself — see checklist.js.
+    let max = 0;
+    log.forEach((e) => {
+      const ca = Number(e.completedAt);
+      if (!isNaN(ca) && ca > max) max = ca;
+    });
+    if (max > 0) {
+      localStorage.setItem(storageKey + ':lastCompletedAt', String(max));
+    } else {
+      localStorage.removeItem(storageKey + ':lastCompletedAt');
+    }
   }
 
   // ---------- Formatting helpers ----------
@@ -600,10 +612,29 @@
 
     const totalMs = log.reduce((sum, e) => sum + (e.elapsedMs || 0), 0);
     const avgMs = totalMs / log.length;
-    summaryEl.innerHTML =
+    let summaryHtml =
       '<div class="summary-tile"><span class="summary-num">' + log.length + '</span><span class="summary-label">Total Cleanings</span></div>' +
       '<div class="summary-tile"><span class="summary-num">' + formatElapsed(avgMs) + '</span><span class="summary-label">Average Time</span></div>' +
       '<div class="summary-tile"><span class="summary-num">' + formatElapsed(totalMs) + '</span><span class="summary-label">Total Time</span></div>';
+
+    const byCleaners = new Map();
+    log.forEach((e) => {
+      const n = Number(e.cleaners) || 1;
+      if (!byCleaners.has(n)) byCleaners.set(n, []);
+      byCleaners.get(n).push(e);
+    });
+    if (byCleaners.size > 1) {
+      Array.from(byCleaners.keys())
+        .sort((a, b) => a - b)
+        .forEach((n) => {
+          const entries = byCleaners.get(n);
+          const groupAvgMs = entries.reduce((s, e) => s + (e.elapsedMs || 0), 0) / entries.length;
+          const label = (n === 1 ? '1 Cleaner' : n + ' Cleaners') + ' · ' + entries.length + (entries.length === 1 ? ' Cleaning' : ' Cleanings');
+          summaryHtml +=
+            '<div class="summary-tile summary-tile-crew"><span class="summary-num">' + formatElapsed(groupAvgMs) + '</span><span class="summary-label">' + label + '</span></div>';
+        });
+    }
+    summaryEl.innerHTML = summaryHtml;
 
     const sorted = log.slice().sort((a, b) => (b.completedAt || 0) - (a.completedAt || 0));
     tbody.innerHTML = '';
@@ -612,6 +643,8 @@
       const id = Number(entry.completedAt);
       const isExpanded = expandedIds.has(id) || editingId === id;
       const isEditing = editingId === id;
+
+      const cleanerCount = Number(entry.cleaners) || 1;
 
       const tr = document.createElement('tr');
       tr.className = 'log-row' + (isExpanded ? ' expanded' : '');
@@ -624,6 +657,7 @@
           '<div class="duration-stack">' +
             '<span class="duration-cell">' +
               '<span class="duration-pill">' + formatElapsed(entry.elapsedMs) + '</span>' +
+              '<span class="crew-size-pill">' + cleanerCount + (cleanerCount === 1 ? ' cleaner' : ' cleaners') + '</span>' +
               '<span class="expand-arrow" aria-hidden="true">&#9656;</span>' +
             '</span>' +
             '<div class="log-media-inline">' +
@@ -808,6 +842,7 @@
         window.EtmMediaDB.clearAllMediaForStorageKey(storageKey).catch(() => {});
       }
       localStorage.removeItem(logKey);
+      localStorage.removeItem(storageKey + ':lastCompletedAt');
       expandedIds.clear();
       editingId = null;
       editingMediaItems = null;

@@ -225,6 +225,12 @@
       }
 
       function getLatestCompletedAt(storageKey) {
+        // Fast path: a small marker kept in sync by checklist.js/log.js, so this never
+        // needs to JSON.parse a location's full (ever-growing) cleaning log just to show
+        // "last cleaned" on the home screen.
+        var marker = Number(localStorage.getItem(storageKey + ':lastCompletedAt'));
+        if (marker > 0) return marker;
+
         try {
           var raw = localStorage.getItem(storageKey + ':log');
           if (!raw) return null;
@@ -234,6 +240,10 @@
           for (var i = 0; i < arr.length; i++) {
             var ca = Number(arr[i].completedAt);
             if (!isNaN(ca) && ca > max) max = ca;
+          }
+          if (max > 0) {
+            // Backfill the marker so this slow path only ever runs once per location.
+            localStorage.setItem(storageKey + ':lastCompletedAt', String(max));
           }
           return max > 0 ? max : null;
         } catch (e) {
