@@ -3651,14 +3651,6 @@ label.btn-photo-add {
   align-items: stretch;
 }
 
-/* Very narrow phones: one column so titles and “Last cleaned” stay readable */
-@media (max-width: 480px) {
-  .home-main.home-dashboard section.locations > .location-list {
-    grid-template-columns: minmax(0, 1fr) !important;
-    gap: 12px;
-  }
-}
-
 .home-main.home-dashboard section.locations > .location-list > .location-btn {
   box-sizing: border-box;
 }
