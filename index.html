@@ -71,6 +71,8 @@
         <a class="location-btn" href="ramsey-rd.html" data-storage-key="checklist-ramsey-rd" data-loc-tag="J"><span class="location-btn__title">Thrift at the Warehouse: Ramsey</span><span class="location-btn__last" aria-live="polite"></span></a>
         <a class="location-btn" href="thrift-s-congress.html" data-storage-key="checklist-thrift-s-congress" data-loc-tag="J"><span class="location-btn__title">Thrift at the Warehouse: S Congress</span><span class="location-btn__last" aria-live="polite"></span></a>
         <a class="location-btn" href="warehouse.html" data-storage-key="checklist-warehouse" data-loc-tag="J"><span class="location-btn__title">Thrift at the Warehouse: Warehouse</span><span class="location-btn__last" aria-live="polite"></span></a>
+        <a class="location-btn location-btn-oneoff" href="one-off-cleaning.html?type=J" id="oneOffJanitorialBtn">+ One-Off Janitorial</a>
+        <a class="location-btn location-btn-oneoff" href="one-off-cleaning.html?type=W" id="oneOffWindowBtn">+ One-Off Window Cleaning</a>
       </div>
     </section>
 
@@ -149,6 +151,7 @@
   <script src="config.js"></script>
   <script src="media-db.js"></script>
   <script src="backup-restore.js"></script>
+  <script src="one-off.js"></script>
   <script>
     (function () {
       var c = window.ETM_DASHBOARD_LINK;
@@ -279,6 +282,35 @@
 
       applyLocationListState();
       window.addEventListener('pageshow', applyLocationListState);
+    })();
+  </script>
+  <script>
+    (function () {
+      var jBtn = document.getElementById('oneOffJanitorialBtn');
+      var wBtn = document.getElementById('oneOffWindowBtn');
+      if (!jBtn || !wBtn || !window.EtmOneOff) return;
+
+      function resetBtn(btn, href, label) {
+        btn.href = href;
+        btn.textContent = label;
+        btn.classList.remove('in-progress');
+      }
+
+      function sync() {
+        resetBtn(jBtn, 'one-off-cleaning.html?type=J', '+ One-Off Janitorial');
+        resetBtn(wBtn, 'one-off-cleaning.html?type=W', '+ One-Off Window Cleaning');
+
+        var active = window.EtmOneOff.findActiveEntry();
+        if (!active) return;
+
+        var btn = active.type === 'W' ? wBtn : jBtn;
+        btn.href = 'one-off-checklist.html?key=' + encodeURIComponent(active.storageKey);
+        btn.textContent = 'Continue One-Off: ' + active.name;
+        btn.classList.add('in-progress');
+      }
+
+      sync();
+      window.addEventListener('pageshow', sync);
     })();
   </script>
   <script>

@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script>document.addEventListener('touchstart',function(){},{passive:true});document.addEventListener('gesturestart',function(e){e.preventDefault();});document.addEventListener('gesturechange',function(e){e.preventDefault();});document.addEventListener('touchmove',function(e){if(e.touches&&e.touches.length>1)e.preventDefault();},{passive:false});var __etmLastTouchEnd=0;document.addEventListener('touchend',function(e){var now=Date.now();if(now-__etmLastTouchEnd<=300){e.preventDefault();}__etmLastTouchEnd=now;},{passive:false});</script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="color-scheme" content="only light" />
+  <meta name="supported-color-schemes" content="light" />
+  <meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff" />
+  <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#ffffff" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="ETM Checklist" />
+  <title>One-Off Cleaning — ETM Checklist</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png" />
+  <link rel="icon" type="image/png" sizes="512x512" href="icons/app-icon.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main>
+    <section class="checklist-page one-off-checklist-page">
+      <a class="back-link" href="index.html">&larr; Back to Home</a>
+
+      <header class="checklist-header">
+        <p class="loc-eyebrow" id="oneOffAddressLine">One-Off Cleaning</p>
+        <h1 id="oneOffNameHeading">&nbsp;</h1>
+        <span class="oneoff-type-badge" id="oneOffTypeBadge"></span>
+      </header>
+
+      <div class="cleaning-timer" id="cleaningTimer">
+        <span class="timer-label" id="timerLabel">Cleaning Time</span>
+        <div class="timer-row">
+          <span class="timer-display" id="timerDisplay">00:00:00</span>
+          <button type="button" class="timer-toggle" id="timerToggle" aria-label="Pause timer">
+            <span class="timer-icon" id="timerIcon">&#10074;&#10074;</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="task-group notes-group">
+        <h2>Notes (optional)</h2>
+        <textarea id="oneOffNotes" rows="4" placeholder="Anything worth noting about this cleaning..."></textarea>
+      </div>
+
+      <div class="checklist-actions">
+        <button type="button" class="btn-secondary" id="oneOffCancelBtn">Cancel (don&rsquo;t log)</button>
+        <button type="button" class="btn-primary" id="oneOffCompleteBtn">Complete Cleaning</button>
+      </div>
+
+      <div class="complete-banner" id="oneOffCompleteBanner" hidden>
+        Cleaning logged! Redirecting&hellip;
+      </div>
+    </section>
+  </main>
+
+  <script src="one-off.js"></script>
+  <script src="one-off-checklist.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script>document.addEventListener('touchstart',function(){},{passive:true});document.addEventListener('gesturestart',function(e){e.preventDefault();});document.addEventListener('gesturechange',function(e){e.preventDefault();});document.addEventListener('touchmove',function(e){if(e.touches&&e.touches.length>1)e.preventDefault();},{passive:false});var __etmLastTouchEnd=0;document.addEventListener('touchend',function(e){var now=Date.now();if(now-__etmLastTouchEnd<=300){e.preventDefault();}__etmLastTouchEnd=now;},{passive:false});</script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="color-scheme" content="only light" />
+  <meta name="supported-color-schemes" content="light" />
+  <meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff" />
+  <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#ffffff" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="ETM Checklist" />
+  <title>One-Off Cleaning — ETM Checklist</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png" />
+  <link rel="icon" type="image/png" sizes="512x512" href="icons/app-icon.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main>
+    <section class="location-page">
+      <a class="back-link" href="index.html">&larr; Back to Locations</a>
+
+      <header class="loc-header">
+        <p class="loc-eyebrow">ETM Checklist</p>
+        <h1 id="oneOffFormHeading">One-Off Cleaning</h1>
+      </header>
+
+      <p class="one-off-intro">
+        For a job that isn&rsquo;t already set up in the app. Enter its details, then it
+        starts and logs just like any other location.
+      </p>
+
+      <p class="block-notice" id="blockNotice" hidden>
+        A cleaning is in progress at another location. Finish or reset that one before
+        starting a one-off cleaning.
+      </p>
+
+      <form class="one-off-form" id="oneOffForm">
+        <label class="one-off-field">
+          <span class="one-off-label">Name</span>
+          <input type="text" id="oneOffName" required maxlength="80" autocomplete="off" placeholder="e.g. Smith Family Home" />
+        </label>
+
+        <label class="one-off-field">
+          <span class="one-off-label">Address (optional)</span>
+          <input type="text" id="oneOffAddress" maxlength="120" autocomplete="off" placeholder="e.g. 123 Main St, Austin TX" />
+        </label>
+
+        <button type="submit" class="btn-primary one-off-submit-btn" id="oneOffSubmitBtn">Start Cleaning</button>
+      </form>
+    </section>
+  </main>
+
+  <script src="one-off.js"></script>
+  <script>
+    (function () {
+      var form = document.getElementById('oneOffForm');
+      var notice = document.getElementById('blockNotice');
+      var nameInput = document.getElementById('oneOffName');
+      var addressInput = document.getElementById('oneOffAddress');
+      var heading = document.getElementById('oneOffFormHeading');
+
+      var params = new URLSearchParams(window.location.search);
+      var type = params.get('type') === 'W' ? 'W' : 'J';
+      heading.textContent = type === 'W' ? 'One-Off Window Cleaning' : 'One-Off Janitorial';
+      document.title = heading.textContent + ' — ETM Checklist';
+
+      function findActiveOtherLocation(excludeKey) {
+        for (var i = 0; i < localStorage.length; i++) {
+          var k = localStorage.key(i);
+          if (!k) continue;
+          var m = k.match(/^(checklist-[^:]+):(startedAt|accumulatedMs)$/);
+          if (m && m[1] !== excludeKey) {
+            var completed = localStorage.getItem(m[1] + ':completedAt');
+            if (!completed) return m[1];
+          }
+        }
+        return null;
+      }
+
+      form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        var name = nameInput.value.trim();
+        if (!name) return;
+        var address = addressInput.value.trim();
+
+        var storageKey = window.EtmOneOff.resolveStorageKey(name);
+
+        if (findActiveOtherLocation(storageKey)) {
+          notice.hidden = false;
+          notice.classList.remove('shake');
+          void notice.offsetWidth;
+          notice.classList.add('shake');
+          return;
+        }
+
+        window.EtmOneOff.upsertEntry({
+          storageKey: storageKey,
+          name: name,
+          address: address,
+          type: type,
+          createdAt: Date.now()
+        });
+
+        var startedKey = storageKey + ':startedAt';
+        var accumulatedKey = storageKey + ':accumulatedMs';
+        if (!localStorage.getItem(startedKey) && !localStorage.getItem(accumulatedKey)) {
+          localStorage.setItem(startedKey, Date.now().toString());
+        }
+
+        window.location.href = 'one-off-checklist.html?key=' + encodeURIComponent(storageKey);
+      });
+    })();
+  </script>
+  <script src="app.js"></script>
+</body>
+</html>

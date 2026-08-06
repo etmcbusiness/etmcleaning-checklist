@@ -24,6 +24,10 @@
 
   function locationLabel(sourceKey) {
     if (LOCATION_LABELS[sourceKey]) return LOCATION_LABELS[sourceKey];
+    if (window.EtmOneOff && String(sourceKey || '').indexOf(window.EtmOneOff.PREFIX) === 0) {
+      const entry = window.EtmOneOff.findByStorageKey(sourceKey);
+      if (entry && entry.name) return entry.name + ' (One-Off)';
+    }
     const m = String(sourceKey || '').match(/^checklist-(.+)$/);
     return m ? m[1].replace(/-/g, ' ') : (sourceKey || 'Location');
   }
