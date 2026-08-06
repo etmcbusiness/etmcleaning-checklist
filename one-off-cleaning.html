@@ -66,7 +66,7 @@
 
       var params = new URLSearchParams(window.location.search);
       var type = params.get('type') === 'W' ? 'W' : 'J';
-      heading.textContent = type === 'W' ? 'One-Off Window Cleaning' : 'One-Off Janitorial';
+      heading.textContent = type === 'W' ? 'One-Off Window Cleaning' : 'One-Off Janitorial Cleaning';
       document.title = heading.textContent + ' — ETM Checklist';
 
       function findActiveOtherLocation(excludeKey) {
