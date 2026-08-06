@@ -4,7 +4,7 @@
 // Opt in on localhost: ?sw=1   Opt out anywhere: ?nosw=1 (unregister only).
 // Bumps the version below to invalidate the cache and force users to get
 // the latest files on their next visit.
-const CACHE_VERSION = 'v92';
+const CACHE_VERSION = 'v93';
 const CACHE_NAME = 'etm-checklist-' + CACHE_VERSION;
 
 const PRECACHE_URLS = [
@@ -120,6 +120,58 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
+// Network-first, but never lets a slow/stalled connection block rendering: races the
+// network fetch against a short timeout and falls back to whatever is cached (still
+// updating the cache in the background once/if the network response does arrive).
+const NETWORK_TIMEOUT_MS = 3000;
+
+function networkFirstWithTimeout(req, fallbackReq) {
+  return caches.match(req).then((cached) => {
+    return new Promise((resolve) => {
+      let settled = false;
+
+      const timer = setTimeout(() => {
+        if (settled) return;
+        if (cached) {
+          settled = true;
+          resolve(cached);
+        } else if (fallbackReq) {
+          caches.match(fallbackReq).then((c) => {
+            if (settled) return;
+            settled = true;
+            resolve(c);
+          });
+        }
+      }, NETWORK_TIMEOUT_MS);
+
+      fetch(req)
+        .then((response) => {
+          if (response && response.status === 200 && response.type === 'basic') {
+            const clone = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(req, clone));
+          }
+          if (!settled) {
+            settled = true;
+            clearTimeout(timer);
+            resolve(response);
+          }
+        })
+        .catch(() => {
+          if (settled) return;
+          settled = true;
+          clearTimeout(timer);
+          if (cached) {
+            resolve(cached);
+          } else if (fallbackReq) {
+            caches.match(fallbackReq).then((c) => resolve(c));
+          } else {
+            resolve(undefined);
+          }
+        });
+    });
+  });
+}
+
 self.addEventListener('fetch', (event) => {
   const req = event.request;
   if (req.method !== 'GET') return;
@@ -128,44 +180,22 @@ self.addEventListener('fetch', (event) => {
   if (url.origin !== self.location.origin) return;
 
   // HTML navigations: network first so the installed PWA picks up new pages when online
-  // (cache-first would keep serving an old precached index forever).
+  // (cache-first would keep serving an old precached index forever) — but capped by a
+  // timeout so a slow/stalled connection falls back to cache instead of hanging.
   const isNavigation =
     req.mode === 'navigate' || req.destination === 'document';
 
   if (isNavigation) {
-    event.respondWith(
-      fetch(req)
-        .then((response) => {
-          if (response && response.status === 200 && response.type === 'basic') {
-            const clone = response.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(req, clone));
-          }
-          return response;
-        })
-        .catch(() =>
-          caches
-            .match(req)
-            .then((c) => c || caches.match('./index.html'))
-        )
-    );
+    event.respondWith(networkFirstWithTimeout(req, './index.html'));
     return;
   }
 
   // CSS/JS: network-first when online so every page gets the same freshly deployed
-  // styles and scripts (cache-first here left the dashboard HTML updated but old styles.css).
+  // styles and scripts (cache-first here left the dashboard HTML updated but old styles.css),
+  // same timeout cap as navigations.
   const path = url.pathname;
   if (/\.(?:css|js)$/i.test(path)) {
-    event.respondWith(
-      fetch(req)
-        .then((response) => {
-          if (response && response.status === 200 && response.type === 'basic') {
-            const clone = response.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(req, clone));
-          }
-          return response;
-        })
-        .catch(() => caches.match(req))
-    );
+    event.respondWith(networkFirstWithTimeout(req, null));
     return;
   }
 
