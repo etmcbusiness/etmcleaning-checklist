@@ -310,10 +310,10 @@ a {
   color: #6b7785;
 }
 
-/* Home: log + calendar — vertical stack; gap matches .location-list row gap */
+/* Home: log links — side by side; gap matches .location-list row gap */
 .home-dashboard-nav-stack {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: stretch;
   gap: 10px;
   width: fit-content;
@@ -322,7 +322,8 @@ a {
 }
 
 .home-dashboard-nav-stack .home-dashboard-log-link {
-  width: 100%;
+  flex: 1 1 0;
+  width: auto;
   box-sizing: border-box;
   text-align: center;
 }
