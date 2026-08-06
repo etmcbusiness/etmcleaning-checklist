@@ -4,7 +4,7 @@
 // Opt in on localhost: ?sw=1   Opt out anywhere: ?nosw=1 (unregister only).
 // Bumps the version below to invalidate the cache and force users to get
 // the latest files on their next visit.
-const CACHE_VERSION = 'v93';
+const CACHE_VERSION = 'v94';
 const CACHE_NAME = 'etm-checklist-' + CACHE_VERSION;
 
 const PRECACHE_URLS = [
@@ -120,54 +120,28 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// Network-first, but never lets a slow/stalled connection block rendering: races the
-// network fetch against a short timeout and falls back to whatever is cached (still
-// updating the cache in the background once/if the network response does arrive).
-const NETWORK_TIMEOUT_MS = 3000;
-
-function networkFirstWithTimeout(req, fallbackReq) {
+// Cache-first, revalidate in the background: every request is answered instantly from
+// the installed cache (no waiting on the network, ever, on the critical path — a slow
+// or stalled connection can no longer delay rendering or leave scripts un-attached when
+// the user starts tapping). A fetch always runs alongside it to refresh the cache for
+// next time; the existing install/activate + controllerchange reload (see app.js) is
+// what surfaces that fresh copy, so nothing here needs to block on the network.
+function cacheFirstAndRevalidate(req, fallbackReq) {
   return caches.match(req).then((cached) => {
-    return new Promise((resolve) => {
-      let settled = false;
-
-      const timer = setTimeout(() => {
-        if (settled) return;
-        if (cached) {
-          settled = true;
-          resolve(cached);
-        } else if (fallbackReq) {
-          caches.match(fallbackReq).then((c) => {
-            if (settled) return;
-            settled = true;
-            resolve(c);
-          });
+    const revalidate = fetch(req)
+      .then((response) => {
+        if (response && response.status === 200 && response.type === 'basic') {
+          const clone = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(req, clone));
         }
-      }, NETWORK_TIMEOUT_MS);
+        return response;
+      })
+      .catch(() => undefined);
 
-      fetch(req)
-        .then((response) => {
-          if (response && response.status === 200 && response.type === 'basic') {
-            const clone = response.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(req, clone));
-          }
-          if (!settled) {
-            settled = true;
-            clearTimeout(timer);
-            resolve(response);
-          }
-        })
-        .catch(() => {
-          if (settled) return;
-          settled = true;
-          clearTimeout(timer);
-          if (cached) {
-            resolve(cached);
-          } else if (fallbackReq) {
-            caches.match(fallbackReq).then((c) => resolve(c));
-          } else {
-            resolve(undefined);
-          }
-        });
+    if (cached) return cached;
+    return revalidate.then((response) => {
+      if (response) return response;
+      return fallbackReq ? caches.match(fallbackReq) : undefined;
     });
   });
 }
@@ -179,38 +153,19 @@ self.addEventListener('fetch', (event) => {
   const url = new URL(req.url);
   if (url.origin !== self.location.origin) return;
 
-  // HTML navigations: network first so the installed PWA picks up new pages when online
-  // (cache-first would keep serving an old precached index forever) — but capped by a
-  // timeout so a slow/stalled connection falls back to cache instead of hanging.
   const isNavigation =
     req.mode === 'navigate' || req.destination === 'document';
 
   if (isNavigation) {
-    event.respondWith(networkFirstWithTimeout(req, './index.html'));
+    event.respondWith(cacheFirstAndRevalidate(req, './index.html'));
     return;
   }
 
-  // CSS/JS: network-first when online so every page gets the same freshly deployed
-  // styles and scripts (cache-first here left the dashboard HTML updated but old styles.css),
-  // same timeout cap as navigations.
   const path = url.pathname;
   if (/\.(?:css|js)$/i.test(path)) {
-    event.respondWith(networkFirstWithTimeout(req, null));
+    event.respondWith(cacheFirstAndRevalidate(req, null));
     return;
   }
 
-  event.respondWith(
-    caches.match(req).then((cached) => {
-      const network = fetch(req)
-        .then((response) => {
-          if (response && response.status === 200 && response.type === 'basic') {
-            const clone = response.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(req, clone));
-          }
-          return response;
-        })
-        .catch(() => cached || caches.match('./index.html'));
-      return cached || network;
-    })
-  );
+  event.respondWith(cacheFirstAndRevalidate(req, './index.html'));
 });
