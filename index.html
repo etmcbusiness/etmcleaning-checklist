@@ -466,27 +466,35 @@
             return;
           }
           var msg =
-            'Replace ALL data on this device with the backup?\n\n' +
-            'Current checklists, logs, timers, notes, and photos here will be overwritten. This cannot be undone except from another backup file.\n\n' +
-            'OK = restore from file. Cancel = keep current data.';
-          if (!window.confirm(msg)) {
-            statusEl.textContent = 'Restore canceled.';
-            return;
-          }
-          setSheetBusy(true);
-          statusEl.textContent = 'Restoring…';
-          E.replaceAllDataFromBackup(v.data)
-            .then(function () {
-              statusEl.textContent = 'Restore complete. Reloading…';
-              window.setTimeout(function () {
-                window.location.reload();
-              }, 300);
-            })
-            .catch(function (err) {
-              statusEl.textContent =
-                'Restore failed: ' + (err && err.message ? err.message : 'unknown error');
-              setSheetBusy(false);
-            });
+            'Current checklists, logs, timers, notes, and photos on this device will be overwritten. This cannot be undone except from another backup file.';
+          var confirmPromise = window.EtmModal
+            ? window.EtmModal.confirm({
+                title: 'Replace All Data On This Device?',
+                message: msg,
+                confirmLabel: 'Yes — Restore',
+                cancelLabel: 'Keep Current Data'
+              })
+            : Promise.resolve(window.confirm(msg + '\n\nOK = restore from file. Cancel = keep current data.'));
+          confirmPromise.then(function (ok) {
+            if (!ok) {
+              statusEl.textContent = 'Restore canceled.';
+              return;
+            }
+            setSheetBusy(true);
+            statusEl.textContent = 'Restoring…';
+            E.replaceAllDataFromBackup(v.data)
+              .then(function () {
+                statusEl.textContent = 'Restore complete. Reloading…';
+                window.setTimeout(function () {
+                  window.location.reload();
+                }, 300);
+              })
+              .catch(function (err) {
+                statusEl.textContent =
+                  'Restore failed: ' + (err && err.message ? err.message : 'unknown error');
+                setSheetBusy(false);
+              });
+          });
         };
         reader.onerror = function () {
           statusEl.textContent = 'Could not read the file.';

@@ -1263,8 +1263,16 @@
     });
   }
 
-  resetBtn.addEventListener('click', () => {
-    if (!confirm('Reset all checkboxes, notes, and timer for this checklist?')) return;
+  resetBtn.addEventListener('click', async () => {
+    const ok = window.EtmModal
+      ? await window.EtmModal.confirm({
+          title: 'Reset This Checklist?',
+          message: 'This clears all checkboxes, notes, and the timer for this checklist.',
+          confirmLabel: 'Yes — Reset',
+          cancelLabel: 'Cancel'
+        })
+      : confirm('Reset all checkboxes, notes, and timer for this checklist?');
+    if (!ok) return;
     checkboxes.forEach((cb) => {
       cb.checked = false;
       updateRow(cb);

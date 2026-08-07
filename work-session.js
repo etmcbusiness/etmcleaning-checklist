@@ -109,6 +109,17 @@
     writeJson(LOG_KEY, entries);
   }
 
+  function notify(message) {
+    if (window.EtmModal) return window.EtmModal.alert(message);
+    alert(message);
+    return Promise.resolve();
+  }
+
+  function confirmAction(opts) {
+    if (window.EtmModal) return window.EtmModal.confirm(opts);
+    return Promise.resolve(window.confirm(typeof opts === 'string' ? opts : opts.message));
+  }
+
   function parseMileageInput(message, defaultValue) {
     var initial = typeof defaultValue === 'number' ? String(defaultValue) : '';
     return showMileageModal(message, initial).then(function (raw) {
@@ -319,7 +330,7 @@
         parseMileageInput('Enter starting vehicle mileage:').then(function (startMileage) {
           if (startMileage === null) return;
           if (isNaN(startMileage)) {
-            alert('Please enter a valid mileage number.');
+            notify('Please enter a valid mileage number.');
             return;
           }
           writeJson(ACTIVE_KEY, {
@@ -333,11 +344,11 @@
       parseMileageInput('Enter ending vehicle mileage:', active.startMileage).then(function (endMileage) {
         if (endMileage === null) return;
         if (isNaN(endMileage)) {
-          alert('Please enter a valid mileage number.');
+          notify('Please enter a valid mileage number.');
           return;
         }
         if (endMileage < Number(active.startMileage)) {
-          alert('Ending mileage cannot be lower than starting mileage.');
+          notify('Ending mileage cannot be lower than starting mileage.');
           return;
         }
         var endedAt = Date.now();
@@ -450,20 +461,21 @@
     }
 
     function deleteWorkEntry(rowKey) {
-      if (
-        !window.confirm(
-          'Delete this work session from the log? This cannot be undone.'
-        )
-      ) {
-        return;
-      }
-      var log = readLog().filter(function (e) {
-        return workLogRowKey(e) !== Number(rowKey);
+      confirmAction({
+        title: 'Delete This Work Session?',
+        message: 'This will permanently remove this session from the log. This cannot be undone.',
+        confirmLabel: 'Yes — Delete',
+        cancelLabel: 'Cancel'
+      }).then(function (ok) {
+        if (!ok) return;
+        var log = readLog().filter(function (e) {
+          return workLogRowKey(e) !== Number(rowKey);
+        });
+        writeLog(log);
+        expandedIds.delete(Number(rowKey));
+        if (editingId === Number(rowKey)) editingId = null;
+        renderLog();
       });
-      writeLog(log);
-      expandedIds.delete(Number(rowKey));
-      if (editingId === Number(rowKey)) editingId = null;
-      renderLog();
     }
 
     function saveWorkLogEdit(rowKey, formEl) {
@@ -481,22 +493,22 @@
       var newStart = new Date(startInput.value).getTime();
       var newEnd = new Date(endInput.value).getTime();
       if (isNaN(newStart) || isNaN(newEnd)) {
-        alert('Please enter valid start and end date/times.');
+        notify('Please enter valid start and end date/times.');
         return;
       }
       if (newEnd < newStart) {
-        alert('End time cannot be before start time.');
+        notify('End time cannot be before start time.');
         return;
       }
 
       var startMi = parseFloat(String(startMiInput.value).trim());
       var endMi = parseFloat(String(endMiInput.value).trim());
       if (!isFinite(startMi) || !isFinite(endMi)) {
-        alert('Please enter valid start and end mileage.');
+        notify('Please enter valid start and end mileage.');
         return;
       }
       if (endMi < startMi) {
-        alert('End mileage cannot be less than start mileage.');
+        notify('End mileage cannot be less than start mileage.');
         return;
       }
 
@@ -673,9 +685,16 @@
     });
 
     clearBtn.addEventListener('click', function () {
-      if (!window.confirm('Clear all work session log entries? This cannot be undone.')) return;
-      localStorage.removeItem(LOG_KEY);
-      renderLog();
+      confirmAction({
+        title: 'Clear Work Session Log?',
+        message: 'This will permanently remove every work session entry. This cannot be undone.',
+        confirmLabel: 'Yes — Clear Log',
+        cancelLabel: 'Cancel'
+      }).then(function (ok) {
+        if (!ok) return;
+        localStorage.removeItem(LOG_KEY);
+        renderLog();
+      });
     });
 
     renderLog();

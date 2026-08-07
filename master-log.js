@@ -136,6 +136,12 @@
     }
   }
 
+  function notify(message) {
+    if (window.EtmModal) return window.EtmModal.alert(message);
+    alert(message);
+    return Promise.resolve();
+  }
+
   confirmOkBtn.addEventListener('click', (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -624,11 +630,11 @@
     const newEnd = new Date(endInput.value).getTime();
 
     if (isNaN(newStart) || isNaN(newEnd)) {
-      alert('Please enter valid start and end times.');
+      notify('Please enter valid start and end times.');
       return;
     }
     if (newEnd < newStart) {
-      alert('End time cannot be before start time.');
+      notify('End time cannot be before start time.');
       return;
     }
 
