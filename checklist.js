@@ -7,6 +7,7 @@
   const startedKey = storageKey + ':startedAt';
   const accumulatedKey = storageKey + ':accumulatedMs';
   const cleanerCountKey = storageKey + ':cleanerCount';
+  const activeCleanerKey = storageKey + ':activeCleaner';
   const logKey = storageKey + ':log';
   const taskTimingsKey = storageKey + ':taskTimings';
   const milestonesKey = storageKey + ':milestones';
@@ -545,6 +546,93 @@
     return n > 0 ? n : 1;
   }
 
+  // ---------- Active cleaner (who is checking things off right now) ----------
+  // On a shared device, whoever hands off the phone can lag behind on tapping their own
+  // finished tasks. Tagging each check with the active cleaner lets section timing measure
+  // "time since this cleaner's last check" instead of "time since the last tap by anyone",
+  // so a late tap during a handoff doesn't inflate another cleaner's section duration.
+  function getActiveCleaner() {
+    const count = getCleanerCount();
+    const n = Number(localStorage.getItem(activeCleanerKey));
+    if (n >= 1 && n <= count) return n;
+    return 1;
+  }
+
+  function setActiveCleaner(n) {
+    localStorage.setItem(activeCleanerKey, String(n));
+    renderCleanerSwitcher();
+  }
+
+  let cleanerSwitcherEl = null;
+
+  function renderCleanerSwitcher() {
+    const count = getCleanerCount();
+    if (!timerEl || count <= 1 || !hasSession() || isCompleted()) {
+      if (cleanerSwitcherEl) cleanerSwitcherEl.hidden = true;
+      return;
+    }
+
+    if (!cleanerSwitcherEl) {
+      cleanerSwitcherEl = document.createElement('div');
+      cleanerSwitcherEl.className = 'cleaner-switcher';
+      cleanerSwitcherEl.id = 'cleanerSwitcher';
+
+      const label = document.createElement('span');
+      label.className = 'cleaner-switcher-label';
+      label.innerHTML =
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">' +
+        '<path d="M17 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"></path><circle cx="10" cy="7" r="4"></circle>' +
+        '<path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path>' +
+        '</svg><span>Checking off as</span>';
+      cleanerSwitcherEl.appendChild(label);
+
+      const opts = document.createElement('div');
+      opts.className = 'cleaner-switcher-options';
+
+      const indicator = document.createElement('span');
+      indicator.className = 'cleaner-switcher-indicator';
+      opts.appendChild(indicator);
+
+      cleanerSwitcherEl.appendChild(opts);
+
+      timerEl.appendChild(cleanerSwitcherEl);
+    }
+
+    const opts = cleanerSwitcherEl.querySelector('.cleaner-switcher-options');
+    const active = getActiveCleaner();
+    const existingCount = opts.querySelectorAll('.cleaner-switcher-option').length;
+    if (existingCount !== count) {
+      Array.from(opts.querySelectorAll('.cleaner-switcher-option')).forEach((el) => el.remove());
+      for (let n = 1; n <= count; n++) {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'cleaner-switcher-option';
+
+        const avatar = document.createElement('span');
+        avatar.className = 'cleaner-switcher-avatar';
+        avatar.textContent = String(n);
+        btn.appendChild(avatar);
+
+        const name = document.createElement('span');
+        name.className = 'cleaner-switcher-name';
+        name.textContent = 'Cleaner ' + n;
+        btn.appendChild(name);
+
+        btn.setAttribute('aria-label', 'Check off tasks as Cleaner ' + n);
+        btn.addEventListener('click', () => setActiveCleaner(n));
+        opts.appendChild(btn);
+      }
+      opts.classList.toggle('many', count > 3);
+    }
+    opts.style.setProperty('--cleaner-count', String(count));
+    opts.style.setProperty('--cleaner-active', String(active - 1));
+    Array.from(opts.querySelectorAll('.cleaner-switcher-option')).forEach((btn, i) => {
+      btn.classList.toggle('is-active', i + 1 === active);
+      btn.setAttribute('aria-pressed', i + 1 === active ? 'true' : 'false');
+    });
+    cleanerSwitcherEl.hidden = false;
+  }
+
   function isRunning() {
     return !!localStorage.getItem(startedKey)
       && !localStorage.getItem(completedKey);
@@ -586,6 +674,7 @@
       timerEl.classList.remove('completed', 'paused');
       if (timerAvgLine) timerAvgLine.hidden = true;
       if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+      renderCleanerSwitcher();
       return;
     }
 
@@ -599,9 +688,11 @@
       timerToggle.hidden = true;
       if (timerAvgLine) timerAvgLine.hidden = true;
       if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+      renderCleanerSwitcher();
       return;
     }
 
+    renderCleanerSwitcher();
     updateTimerAvgHint();
 
     timerEl.classList.remove('completed');
@@ -682,6 +773,7 @@
     localStorage.removeItem(accumulatedKey);
     localStorage.removeItem(completedKey);
     localStorage.removeItem(cleanerCountKey);
+    localStorage.removeItem(activeCleanerKey);
     localStorage.removeItem(taskTimingsKey);
     localStorage.removeItem(milestonesKey);
     localStorage.removeItem(storageKey);
@@ -700,12 +792,27 @@
     window.location.replace(homeUrl);
   }
 
+  function setSectionCollapsed(section, collapsed) {
+    if (!section) return;
+    section.classList.toggle('is-collapsed', !!collapsed);
+    const row = section.querySelector('.task-group-title-row');
+    if (row) row.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+  }
+
+  function toggleSection(section) {
+    if (!section) return;
+    setSectionCollapsed(section, !section.classList.contains('is-collapsed'));
+  }
+
   function initSectionTitleRows() {
     page.querySelectorAll('.task-group:not(.notes-group):not(.photo-upload-group)').forEach((section) => {
       const h2 = Array.from(section.children).find((el) => el.tagName === 'H2');
       if (!h2 || h2.closest('.task-group-title-row')) return;
       const row = document.createElement('div');
       row.className = 'task-group-title-row';
+      row.setAttribute('role', 'button');
+      row.setAttribute('tabindex', '0');
+      row.setAttribute('aria-expanded', 'true');
       h2.replaceWith(row);
       row.appendChild(h2);
       const meta = document.createElement('span');
@@ -719,7 +826,37 @@
       meta.appendChild(chip);
       meta.appendChild(timingWrap);
       row.appendChild(meta);
+
+      if (section.querySelector('.task-list')) {
+        const chevron = document.createElement('span');
+        chevron.className = 'section-chevron';
+        chevron.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>';
+        row.appendChild(chevron);
+
+        row.addEventListener('click', () => toggleSection(section));
+        row.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            toggleSection(section);
+          }
+        });
+      }
     });
+  }
+
+  function collapseAllSections() {
+    getTimedTaskSections().forEach((section) => {
+      setSectionCollapsed(section, true);
+      section.classList.toggle('all-done', sectionFullyChecked(section));
+    });
+  }
+
+  function updateStickyOffset() {
+    const host = page.querySelector('.checklist-sticky-top');
+    const checklistEl = page.querySelector('.checklist');
+    if (!host || !checklistEl) return;
+    const offset = host.offsetHeight + 24;
+    checklistEl.style.setProperty('--sticky-offset', offset + 'px');
   }
 
   function updateSectionChips() {
@@ -1064,7 +1201,12 @@
       .filter((i) => i >= 0)
       .sort((a, b) => a - b);
     const elapsedMs = getElapsedMs();
-    const prevElapsedMs = maxTimingElapsedMs(timings);
+    const cleaner = getActiveCleaner();
+    // Duration is measured since this same cleaner's last checkpoint, not the last check by
+    // anyone — otherwise a delayed tap during a phone handoff would wrongly inflate this
+    // section's time with the other cleaner's idle/working gap.
+    const sameCleanerTimings = timings.filter((t) => (Number(t.cleaner) || 1) === cleaner);
+    const prevElapsedMs = maxTimingElapsedMs(sameCleanerTimings);
     const durationMs = Math.max(0, elapsedMs - prevElapsedMs);
     timings.push({
       timingGroup: sid,
@@ -1072,6 +1214,7 @@
       groupMemberIdxs: memberIdxs,
       text: getSectionHeadingText(section),
       optional: !!section.classList.contains('optional'),
+      cleaner: cleaner,
       elapsedMs: elapsedMs,
       durationMs: durationMs
     });
@@ -1085,6 +1228,17 @@
       const newPct = updateProgress();
       saveState();
       recordTaskCheck(idx, cb.checked);
+
+      const section = cb.closest('.task-group');
+      if (section && section.querySelector('.task-list')) {
+        if (sectionFullyChecked(section)) {
+          section.classList.add('all-done');
+          setTimeout(() => setSectionCollapsed(section, true), 350);
+        } else {
+          section.classList.remove('all-done');
+          setSectionCollapsed(section, false);
+        }
+      }
 
       if (cb.checked) {
         try {
@@ -1124,6 +1278,7 @@
     localStorage.removeItem(startedKey);
     localStorage.removeItem(accumulatedKey);
     localStorage.removeItem(cleanerCountKey);
+    localStorage.removeItem(activeCleanerKey);
     localStorage.removeItem(taskTimingsKey);
     localStorage.removeItem(milestonesKey);
     banner.hidden = true;
@@ -1131,6 +1286,7 @@
     initTimer();
     rebuildAllSectionTimingUi();
     updateTimerAvgHint();
+    collapseAllSections();
     if (window.EtmMediaDB) {
       window.EtmMediaDB.clearDraft(storageKey).then(() => refreshPhotosUi()).catch(() => refreshPhotosUi());
     }
@@ -1225,6 +1381,7 @@
       localStorage.removeItem(startedKey);
       localStorage.removeItem(accumulatedKey);
       localStorage.removeItem(cleanerCountKey);
+      localStorage.removeItem(activeCleanerKey);
       localStorage.removeItem(taskTimingsKey);
       localStorage.removeItem(milestonesKey);
 
@@ -1338,7 +1495,10 @@
 
   loadState();
   initSectionTitleRows();
+  collapseAllSections();
   updateProgress();
   rebuildAllSectionTimingUi();
   refreshPhotosUi();
+  updateStickyOffset();
+  window.addEventListener('resize', updateStickyOffset);
 })();

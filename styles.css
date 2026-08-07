@@ -2865,8 +2865,8 @@ section.log-page[data-work-log="true"] .log-summary {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  flex-wrap: wrap;
+  gap: 10px;
+  flex-wrap: nowrap;
   margin: 0 0 8px;
 }
 
@@ -2902,17 +2902,17 @@ section.log-page[data-work-log="true"] .log-summary {
   align-items: center;
   gap: 8px;
   flex-shrink: 0;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   justify-content: flex-end;
-  max-width: 100%;
 }
 
 .section-timing-wrap {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   min-height: 0;
+  white-space: nowrap;
 }
 
 .section-timing-wrap[hidden] {
@@ -2930,7 +2930,7 @@ section.log-page[data-work-log="true"] .log-summary {
 .checklist {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 10px;
   margin-bottom: 24px;
 }
 
@@ -2938,8 +2938,9 @@ section.log-page[data-work-log="true"] .log-summary {
   background: var(--white);
   border: 1px solid var(--border);
   border-radius: 14px;
-  padding: 18px 22px;
+  padding: 14px 18px;
   box-shadow: var(--shadow);
+  scroll-margin-top: var(--sticky-offset, 170px);
 }
 
 .task-group h2 {
@@ -2949,6 +2950,54 @@ section.log-page[data-work-log="true"] .log-summary {
   letter-spacing: 1.5px;
   text-transform: uppercase;
   color: #0a4f72;
+}
+
+/* ---------- Collapsible sections ---------- */
+.task-group-title-row {
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+.section-chevron {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  color: #6b7785;
+  transition: transform 0.2s ease;
+}
+
+.section-chevron svg {
+  width: 14px;
+  height: 14px;
+}
+
+.task-group.is-collapsed .section-chevron {
+  transform: rotate(-90deg);
+}
+
+.task-group.is-collapsed .task-list,
+.task-group.is-collapsed .cleaner-badge,
+.task-group.is-collapsed .process-note,
+.task-group.is-collapsed .optional-subtitle {
+  display: none;
+}
+
+.task-group.is-collapsed .task-group-title-row {
+  margin-bottom: 0;
+}
+
+.task-group.is-collapsed .task-group-title-row h2 {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.task-group.is-collapsed.all-done {
+  background: var(--off-white);
 }
 
 .cleaner-badge {
@@ -3216,7 +3265,7 @@ label.btn-photo-add {
   display: flex;
   align-items: center;
   gap: 14px;
-  padding: 12px 4px;
+  padding: 10px 4px;
   cursor: pointer;
   font-size: 16px;
   user-select: none;
@@ -3589,6 +3638,121 @@ label.btn-photo-add {
 
 .cleaning-timer.completed .timer-label {
   color: #4ade80;
+}
+
+/* ---------- Active cleaner switcher (attributes each check-off to a crew member) ---------- */
+.cleaner-switcher {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  width: 100%;
+  margin: 4px 0 0;
+  padding-top: 10px;
+  border-top: 1px solid rgba(174, 220, 245, 0.18);
+}
+
+.cleaner-switcher-label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--light-blue);
+}
+
+.cleaner-switcher-label svg {
+  width: 12px;
+  height: 12px;
+  flex-shrink: 0;
+  opacity: 0.9;
+}
+
+.cleaner-switcher-options {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(var(--cleaner-count, 1), 1fr);
+  gap: 3px;
+  width: 100%;
+  padding: 4px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 999px;
+}
+
+.cleaner-switcher-indicator {
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  left: 4px;
+  width: calc((100% - 8px) / var(--cleaner-count, 1));
+  border-radius: 999px;
+  background: linear-gradient(180deg, var(--light-blue) 0%, var(--light-blue-strong) 100%);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.15) inset;
+  transform: translateX(calc(var(--cleaner-active, 0) * 100%));
+  transition: transform 0.28s cubic-bezier(0.34, 1.4, 0.5, 1);
+  will-change: transform;
+}
+
+.cleaner-switcher-option {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: none;
+  background: transparent;
+  border-radius: 999px;
+  padding: 7px 6px;
+  min-height: 34px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--light-blue);
+  cursor: pointer;
+  transition: color 0.2s ease, transform 0.15s ease;
+}
+
+.cleaner-switcher-option:active {
+  transform: scale(0.95);
+}
+
+.cleaner-switcher-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 1.5px solid currentColor;
+  font-size: 10px;
+  font-weight: 800;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.cleaner-switcher-name {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cleaner-switcher-option.is-active {
+  color: var(--black);
+}
+
+.cleaner-switcher-option.is-active .cleaner-switcher-avatar {
+  background: rgba(11, 11, 13, 0.14);
+  border-color: rgba(11, 11, 13, 0.4);
+}
+
+.cleaner-switcher-options.many .cleaner-switcher-name {
+  display: none;
+}
+
+.cleaning-timer.paused .cleaner-switcher-label,
+.cleaning-timer.paused .cleaner-switcher-options {
+  opacity: 0.7;
 }
 
 /* ---------- Milestone Banner (progress celebrations) ---------- */
@@ -4162,9 +4326,9 @@ label.btn-photo-add {
   /* Checklist tasks (bigger tap targets) */
   .task-list label {
     font-size: 16px;
-    padding: 16px 4px;
+    padding: 12px 4px;
     gap: 16px;
-    min-height: 56px;
+    min-height: 48px;
   }
   .task-list input[type="checkbox"] {
     width: 28px;
@@ -4199,10 +4363,13 @@ label.btn-photo-add {
     font-size: 13px;
   }
   .task-group {
-    padding: 18px 18px 8px;
+    padding: 14px 16px 6px;
   }
   .task-group h2 {
     font-size: 15px;
+  }
+  .task-group.is-collapsed {
+    padding-bottom: 14px;
   }
 
   .btn-photo-add {
