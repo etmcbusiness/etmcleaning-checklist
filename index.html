@@ -2,6 +2,55 @@
 <html lang="en">
 <head>
   <script>document.addEventListener('touchstart',function(){},{passive:true});document.addEventListener('gesturestart',function(e){e.preventDefault();});document.addEventListener('gesturechange',function(e){e.preventDefault();});document.addEventListener('touchmove',function(e){if(e.touches&&e.touches.length>1)e.preventDefault();},{passive:false});var __etmLastTouchEnd=0;document.addEventListener('touchend',function(e){var now=Date.now();if(now-__etmLastTouchEnd<=300){e.preventDefault();}__etmLastTouchEnd=now;},{passive:false});</script>
+  <script>
+    (function () {
+      // The installed PWA's start_url always points here, so any time iOS fully
+      // discards and relaunches the app (common when switching apps under memory
+      // pressure) it lands on the home screen — even mid-cleaning. A fresh launch
+      // (not a click from within the app) has no referrer; if a cleaning is active,
+      // jump straight back into it instead of making the user find their way back.
+      if (document.referrer) return;
+      var ONEOFF_PREFIX = 'checklist-custom-';
+      var activeKey = null;
+      for (var i = 0; i < localStorage.length; i++) {
+        var k = localStorage.key(i);
+        if (!k) continue;
+        var m = k.match(/^(checklist-[^:]+):(startedAt|accumulatedMs)$/);
+        if (!m) continue;
+        var sk = m[1];
+        if (!localStorage.getItem(sk + ':completedAt')) {
+          activeKey = sk;
+          break;
+        }
+      }
+      if (!activeKey) return;
+
+      var dest = null;
+      if (activeKey.indexOf(ONEOFF_PREFIX) === 0) {
+        try {
+          var reg = JSON.parse(localStorage.getItem('etm-one-off-locations') || '[]');
+          var entry = null;
+          for (var j = 0; j < reg.length; j++) {
+            if (reg[j].storageKey === activeKey) {
+              entry = reg[j];
+              break;
+            }
+          }
+          if (entry) {
+            dest =
+              (entry.type === 'W' ? 'one-off-window-checklist.html' : 'one-off-janitorial-checklist.html') +
+              '?key=' + encodeURIComponent(activeKey);
+          }
+        } catch (e) {
+          /* ignore */
+        }
+      } else {
+        dest = activeKey.replace(/^checklist-/, '') + '-checklist.html';
+      }
+
+      if (dest) window.location.replace(dest);
+    })();
+  </script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <meta name="color-scheme" content="only light" />
