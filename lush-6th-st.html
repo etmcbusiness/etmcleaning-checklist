@@ -25,8 +25,9 @@
       <a class="back-link" href="index.html">&larr; Back to Locations</a>
 
       <header class="loc-header">
-        <p class="loc-eyebrow">ETM Checklist</p>
+        <p class="loc-eyebrow">Window Cleaning</p>
         <h1>Lush: 6th St</h1>
+        <p class="loc-sub">Austin, TX</p>
       </header>
 
       <div class="info-grid">
@@ -43,9 +44,17 @@
           <p class="info-value">6 Window Panes</p>
         </div>
 
-        <div class="info-card">
-          <span class="info-label">Est. Time to Complete</span>
-          <p class="info-value">0.15 Hours (9 min)</p>
+        <div class="info-card est-time-card">
+          <div class="est-time-text">
+            <span class="info-label">Est. Time to Complete</span>
+            <p class="info-value" id="estTimeValue">&mdash;</p>
+          </div>
+          <div class="est-time-wheel-col" id="estTimeWheelRow" hidden>
+            <span class="est-time-wheel-label">Cleaners</span>
+            <div class="est-time-wheel" id="estTimeWheel" role="listbox" aria-label="Number of cleaners" tabindex="0">
+              <div class="est-time-wheel-track" id="estTimeWheelTrack"></div>
+            </div>
+          </div>
         </div>
 
         <div class="info-card">
@@ -92,6 +101,7 @@
 
   <script src="start-cleaning.js"></script>
   <script src="alarm-reveal.js"></script>
+  <script src="est-time.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
