@@ -4,7 +4,7 @@
 // Opt in on localhost: ?sw=1   Opt out anywhere: ?nosw=1 (unregister only).
 // Bumps the version below to invalidate the cache and force users to get
 // the latest files on their next visit.
-const CACHE_VERSION = 'v100';
+const CACHE_VERSION = 'v101';
 const CACHE_NAME = 'etm-checklist-' + CACHE_VERSION;
 
 const PRECACHE_URLS = [
@@ -66,6 +66,9 @@ const PRECACHE_URLS = [
   './myeyedr-domain.html',
   './myeyedr-domain-checklist.html',
   './myeyedr-domain-log.html',
+  './myeyedr-lone-star.html',
+  './myeyedr-lone-star-checklist.html',
+  './myeyedr-lone-star-log.html',
   './myeyedr-seaholm.html',
   './myeyedr-seaholm-checklist.html',
   './myeyedr-seaholm-log.html',
